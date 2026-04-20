@@ -127,7 +127,7 @@ function Dashboard() {
                 <Line type="monotone" dataKey="balance" stroke="oklch(0.97 0.02 95)" strokeWidth={2.5} dot={false} />
                 <Tooltip
                   contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 12, color: "var(--foreground)" }}
-                  formatter={(v: number) => fmtMoney(v)}
+                  formatter={(v) => fmtMoney(Number(v))}
                 />
                 <XAxis dataKey="date" tick={{ fill: "oklch(0.97 0.02 95)", fontSize: 10 }} />
                 <YAxis tick={{ fill: "oklch(0.97 0.02 95)", fontSize: 10 }} />
@@ -190,7 +190,7 @@ function Dashboard() {
                 <YAxis tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} />
                 <Tooltip
                   contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 12 }}
-                  formatter={(v: number) => fmtMoney(v)}
+                  formatter={(v) => fmtMoney(Number(v))}
                 />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
                 <Bar dataKey="income" fill="var(--income)" radius={[6, 6, 0, 0]} />
@@ -216,7 +216,7 @@ function Dashboard() {
                   </Pie>
                   <Tooltip
                     contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 12 }}
-                    formatter={(v: number) => fmtMoney(v)}
+                    formatter={(v) => fmtMoney(Number(v))}
                   />
                   <Legend wrapperStyle={{ fontSize: 11 }} />
                 </PieChart>
