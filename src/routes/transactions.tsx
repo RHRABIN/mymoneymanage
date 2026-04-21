@@ -136,7 +136,7 @@ function TransactionsPage() {
                 </header>
                 <ul className="divide-y divide-border">
                   {items.map((t) => (
-                    <li key={t.id} className="flex items-center gap-3 px-5 py-3">
+                    <li key={t.id} className="flex items-start gap-3 px-4 py-3 sm:items-center sm:px-5">
                       <span
                         className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${
                           t.type === "income" ? "bg-income/10 text-income" : "bg-expense/10 text-expense"
@@ -145,16 +145,19 @@ function TransactionsPage() {
                         {t.type === "income" ? "↑" : "↓"}
                       </span>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate font-medium">{t.title}</p>
+                        <p className="break-words font-medium sm:truncate">{t.title}</p>
                         <p className="text-xs text-muted-foreground">
                           {format(parseISO(t.date), "MMM d, yyyy")}
                           {t.category ? ` · ${t.category}` : ""}
                         </p>
+                        <span className={`mt-1 inline-block font-display text-base font-semibold sm:hidden ${t.type === "income" ? "text-income" : "text-expense"}`}>
+                          {t.type === "income" ? "+" : "-"}{fmtMoney(Number(t.amount))}
+                        </span>
                       </div>
-                      <span className={`shrink-0 font-display text-base font-semibold ${t.type === "income" ? "text-income" : "text-expense"}`}>
+                      <span className={`hidden shrink-0 font-display text-base font-semibold sm:inline ${t.type === "income" ? "text-income" : "text-expense"}`}>
                         {t.type === "income" ? "+" : "-"}{fmtMoney(Number(t.amount))}
                       </span>
-                      <div className="flex shrink-0 gap-1">
+                      <div className="flex shrink-0 flex-col gap-1 sm:flex-row">
                         <Button size="icon" variant="ghost" onClick={() => { setEditing(t); setOpen(true); }} aria-label="Edit">
                           <Pencil className="h-4 w-4" />
                         </Button>
