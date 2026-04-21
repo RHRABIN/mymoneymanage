@@ -13,7 +13,7 @@ export type Transaction = {
 };
 
 export const fmtMoney = (n: number) =>
-  new Intl.NumberFormat(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 2 }).format(n);
+  new Intl.NumberFormat("en-BD", { style: "currency", currency: "BDT", maximumFractionDigits: 2 }).format(n);
 
 export function summarize(txs: Transaction[]) {
   let income = 0;
