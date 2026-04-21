@@ -1,20 +1,22 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { LayoutDashboard, ListOrdered, LogOut, Menu, X } from "lucide-react";
+import { LayoutDashboard, ListOrdered, LogOut, Menu, X, User, Shield } from "lucide-react";
 import { useState } from "react";
 import { Logo } from "./Logo";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 
-const NAV = [
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/transactions", label: "Transactions", icon: ListOrdered },
-] as const;
-
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const { user, signOut } = useAuth();
+  const { user, signOut, isSuperAdmin } = useAuth();
   const navigate = useNavigate();
   const loc = useLocation();
   const [open, setOpen] = useState(false);
+
+  const NAV = [
+    { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { to: "/transactions", label: "Transactions", icon: ListOrdered },
+    { to: "/account", label: "My Account", icon: User },
+    ...(isSuperAdmin ? [{ to: "/admin", label: "Super Admin", icon: Shield }] : []),
+  ] as const;
 
   const handleSignOut = async () => {
     await signOut();
