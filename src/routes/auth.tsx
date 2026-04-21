@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -98,6 +98,13 @@ function AuthPage() {
             <Button type="submit" disabled={submitting} className="w-full bg-gradient-emerald text-primary-foreground shadow-elegant hover:opacity-95">
               {submitting ? "Please wait..." : mode === "signin" ? "Sign in" : "Create account"}
             </Button>
+            {mode === "signin" && (
+              <div className="text-right">
+                <Link to="/forgot-password" className="text-xs text-muted-foreground hover:text-primary hover:underline">
+                  Forgot password?
+                </Link>
+              </div>
+            )}
           </form>
 
           <p className="mt-6 text-center text-sm text-muted-foreground">
