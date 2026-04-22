@@ -282,6 +282,15 @@ function TransactionsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Floating Add button */}
+      <Button
+        onClick={() => { setEditing(null); setOpen(true); }}
+        aria-label="Add transaction"
+        className="fixed bottom-20 left-4 z-40 h-14 w-14 rounded-full bg-gradient-emerald p-0 text-primary-foreground shadow-elegant hover:opacity-95 sm:bottom-6 sm:left-6"
+      >
+        <Plus className="h-6 w-6" />
+      </Button>
     </div>
   );
 }
