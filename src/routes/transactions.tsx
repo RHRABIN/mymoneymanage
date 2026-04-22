@@ -4,11 +4,12 @@ import {
   addMonths, addWeeks, eachDayOfInterval, endOfMonth, endOfWeek,
   format, isSameMonth, parseISO, startOfMonth, startOfWeek, subMonths, subWeeks,
 } from "date-fns";
-import { ArrowDownRight, ArrowUpRight, ChevronLeft, ChevronRight, Pencil, Plus, Trash2 } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, ChevronLeft, ChevronRight, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { RequireAuth } from "@/components/RequireAuth";
 import { TransactionDialog } from "@/components/TransactionDialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
