@@ -224,15 +224,15 @@ function TransactionsPage() {
               return (
                 <li key={day}>
                   {/* Day header */}
-                  <div className="flex items-center gap-2 bg-muted/30 px-3 py-2.5 sm:gap-3 sm:px-4">
-                    <span className="font-display text-xl font-bold leading-none sm:text-2xl">{format(d, "d")}</span>
+                  <div className="flex items-center gap-2 bg-muted/30 px-2.5 py-2 sm:gap-3 sm:px-4 sm:py-2.5">
+                    <span className="font-display text-lg font-bold leading-none sm:text-2xl">{format(d, "d")}</span>
                     <div className="flex min-w-0 flex-col text-[10px] leading-tight text-muted-foreground sm:text-[11px]">
                       <span>{format(d, "yyyy/MM")}</span>
-                      <span className="mt-0.5 inline-block w-fit rounded-md bg-muted px-1.5 py-0.5 text-[10px] uppercase tracking-wide">
+                      <span className="mt-0.5 inline-block w-fit rounded-md bg-muted px-1.5 py-0.5 text-[9px] uppercase tracking-wide sm:text-[10px]">
                         {format(d, "EEE")}
                       </span>
                     </div>
-                    <div className="ml-auto flex shrink-0 items-center gap-2 text-[11px] sm:gap-3 sm:text-sm">
+                    <div className="ml-auto flex shrink-0 flex-col items-end gap-0.5 text-[10px] leading-tight sm:flex-row sm:items-center sm:gap-3 sm:text-sm">
                       <span className="inline-flex items-center gap-0.5 text-income">
                         <ArrowUpRight className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                         {fmtMoney(dayInc)}
