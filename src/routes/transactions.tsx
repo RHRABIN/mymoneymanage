@@ -4,7 +4,7 @@ import {
   addMonths, addWeeks, eachDayOfInterval, endOfMonth, endOfWeek,
   format, isSameMonth, parseISO, startOfMonth, startOfWeek, subMonths, subWeeks,
 } from "date-fns";
-import { ChevronLeft, ChevronRight, Pencil, Plus, Trash2 } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, ChevronLeft, ChevronRight, Pencil, Plus, Trash2 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { RequireAuth } from "@/components/RequireAuth";
 import { TransactionDialog } from "@/components/TransactionDialog";
@@ -110,13 +110,6 @@ function TransactionsPage() {
       {/* Title bar */}
       <header className="flex items-center justify-between gap-3">
         <h1 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">Transaction</h1>
-        <Button
-          onClick={() => { setEditing(null); setOpen(true); }}
-          size="sm"
-          className="bg-gradient-emerald text-primary-foreground shadow-elegant hover:opacity-95"
-        >
-          <Plus className="mr-1.5 h-4 w-4" /> Add
-        </Button>
       </header>
 
       {/* Period nav */}
@@ -197,37 +190,53 @@ function TransactionsPage() {
               return (
                 <li key={day}>
                   {/* Day header */}
-                  <div className="flex items-center gap-3 bg-muted/30 px-4 py-2.5">
-                    <span className="font-display text-2xl font-bold leading-none">{format(d, "d")}</span>
-                    <div className="flex flex-col text-[11px] leading-tight text-muted-foreground">
+                  <div className="flex items-center gap-2 bg-muted/30 px-3 py-2.5 sm:gap-3 sm:px-4">
+                    <span className="font-display text-xl font-bold leading-none sm:text-2xl">{format(d, "d")}</span>
+                    <div className="flex min-w-0 flex-col text-[10px] leading-tight text-muted-foreground sm:text-[11px]">
                       <span>{format(d, "yyyy/MM")}</span>
                       <span className="mt-0.5 inline-block w-fit rounded-md bg-muted px-1.5 py-0.5 text-[10px] uppercase tracking-wide">
                         {format(d, "EEE")}
                       </span>
                     </div>
-                    <div className="ml-auto flex items-center gap-3 text-xs sm:text-sm">
-                      <span className="text-income">{fmtMoney(dayInc)}</span>
-                      <span className="text-expense">{fmtMoney(dayExp)}</span>
+                    <div className="ml-auto flex shrink-0 items-center gap-2 text-[11px] sm:gap-3 sm:text-sm">
+                      <span className="inline-flex items-center gap-0.5 text-income">
+                        <ArrowUpRight className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                        {fmtMoney(dayInc)}
+                      </span>
+                      <span className="inline-flex items-center gap-0.5 text-expense">
+                        <ArrowDownRight className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                        {fmtMoney(dayExp)}
+                      </span>
                     </div>
                   </div>
 
                   {/* Day items */}
                   <ul className="divide-y divide-border/60">
                     {items.map((t) => (
-                      <li key={t.id} className="flex items-center gap-3 px-4 py-3">
+                      <li key={t.id} className="flex items-start gap-2 px-3 py-3 sm:items-center sm:gap-3 sm:px-4">
                         <div className="min-w-0 flex-1">
-                          <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                          <p className="text-[10px] uppercase tracking-wide text-muted-foreground sm:text-[11px]">
                             {t.category || (t.type === "income" ? "Income" : "Expense")}
                           </p>
-                          <p className="break-words font-medium text-foreground">{t.title}</p>
+                          <p className="break-all text-sm font-medium text-foreground sm:text-base">{t.title}</p>
+                          <span
+                            className={cn(
+                              "mt-1 inline-flex items-center gap-0.5 font-display text-sm font-semibold sm:hidden",
+                              t.type === "income" ? "text-income" : "text-expense",
+                            )}
+                          >
+                            {t.type === "income" ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}
+                            {fmtMoney(Number(t.amount))}
+                          </span>
                         </div>
                         <span
                           className={cn(
-                            "shrink-0 font-display text-sm font-semibold sm:text-base",
+                            "hidden shrink-0 font-display text-sm font-semibold sm:inline-flex sm:items-center sm:gap-0.5 sm:text-base",
                             t.type === "income" ? "text-income" : "text-expense",
                           )}
                         >
-                          {t.type === "income" ? "+" : "-"}{fmtMoney(Number(t.amount))}
+                          {t.type === "income" ? <ArrowUpRight className="h-4 w-4" /> : <ArrowDownRight className="h-4 w-4" />}
+                          {fmtMoney(Number(t.amount))}
                         </span>
                         <div className="flex shrink-0 flex-col gap-0.5 sm:flex-row">
                           <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => { setEditing(t); setOpen(true); }} aria-label="Edit">
@@ -273,6 +282,15 @@ function TransactionsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Floating Add button */}
+      <Button
+        onClick={() => { setEditing(null); setOpen(true); }}
+        aria-label="Add transaction"
+        className="fixed bottom-20 left-4 z-40 h-14 w-14 rounded-full bg-gradient-emerald p-0 text-primary-foreground shadow-elegant hover:opacity-95 sm:bottom-6 sm:left-6"
+      >
+        <Plus className="h-6 w-6" />
+      </Button>
     </div>
   );
 }
