@@ -4,11 +4,12 @@ import {
   addMonths, addWeeks, eachDayOfInterval, endOfMonth, endOfWeek,
   format, isSameMonth, parseISO, startOfMonth, startOfWeek, subMonths, subWeeks,
 } from "date-fns";
-import { ArrowDownRight, ArrowUpRight, ChevronLeft, ChevronRight, Pencil, Plus, Trash2 } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, ChevronLeft, ChevronRight, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { RequireAuth } from "@/components/RequireAuth";
 import { TransactionDialog } from "@/components/TransactionDialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -53,6 +54,7 @@ function TransactionsPage() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Transaction | null>(null);
   const [toDelete, setToDelete] = useState<Transaction | null>(null);
+  const [search, setSearch] = useState("");
 
   const load = async () => {
     setLoading(true);
@@ -67,8 +69,19 @@ function TransactionsPage() {
 
   // Filter to current month for daily/calendar views
   const monthTxs = useMemo(
-    () => txs.filter((t) => isSameMonth(parseISO(t.date), cursor)),
-    [txs, cursor],
+    () => {
+      const q = search.trim().toLowerCase();
+      return txs.filter((t) => {
+        if (!isSameMonth(parseISO(t.date), cursor)) return false;
+        if (!q) return true;
+        return (
+          t.title.toLowerCase().includes(q) ||
+          (t.category ?? "").toLowerCase().includes(q) ||
+          String(t.amount).includes(q)
+        );
+      });
+    },
+    [txs, cursor, search],
   );
 
   const totals = useMemo(() => {
@@ -123,6 +136,27 @@ function TransactionsPage() {
         </Button>
       </div>
 
+      {/* Search */}
+      <div className="relative">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by title, category or amount"
+          className="h-10 rounded-2xl border-border bg-card pl-9 pr-9"
+        />
+        {search && (
+          <button
+            type="button"
+            onClick={() => setSearch("")}
+            aria-label="Clear search"
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
+      </div>
+
       {/* Tabs */}
       <div className="overflow-x-auto rounded-2xl border border-border bg-card">
         <div className="flex min-w-max">
@@ -148,22 +182,22 @@ function TransactionsPage() {
       </div>
 
       {/* Totals */}
-      <div className="grid grid-cols-3 gap-2 rounded-2xl border border-border bg-card px-3 py-4 text-center">
-        <div>
-          <p className="text-xs text-muted-foreground">Income</p>
-          <p className="mt-1 font-display text-sm font-semibold text-income sm:text-base">
+      <div className="grid grid-cols-3 gap-2 rounded-2xl border border-border bg-card px-2 py-3 text-center sm:px-3 sm:py-4">
+        <div className="min-w-0">
+          <p className="text-[10px] text-muted-foreground sm:text-xs">Income</p>
+          <p className="mt-1 truncate font-display text-xs font-semibold text-income sm:text-base">
             {fmtMoney(totals.income)}
           </p>
         </div>
-        <div>
-          <p className="text-xs text-muted-foreground">Expenses</p>
-          <p className="mt-1 font-display text-sm font-semibold text-expense sm:text-base">
+        <div className="min-w-0">
+          <p className="text-[10px] text-muted-foreground sm:text-xs">Expenses</p>
+          <p className="mt-1 truncate font-display text-xs font-semibold text-expense sm:text-base">
             {fmtMoney(totals.expense)}
           </p>
         </div>
-        <div>
-          <p className="text-xs text-muted-foreground">Total</p>
-          <p className="mt-1 font-display text-sm font-semibold sm:text-base">
+        <div className="min-w-0">
+          <p className="text-[10px] text-muted-foreground sm:text-xs">Total</p>
+          <p className="mt-1 truncate font-display text-xs font-semibold sm:text-base">
             {fmtMoney(totals.total)}
           </p>
         </div>
@@ -190,15 +224,15 @@ function TransactionsPage() {
               return (
                 <li key={day}>
                   {/* Day header */}
-                  <div className="flex items-center gap-2 bg-muted/30 px-3 py-2.5 sm:gap-3 sm:px-4">
-                    <span className="font-display text-xl font-bold leading-none sm:text-2xl">{format(d, "d")}</span>
+                  <div className="flex items-center gap-2 bg-muted/30 px-2.5 py-2 sm:gap-3 sm:px-4 sm:py-2.5">
+                    <span className="font-display text-lg font-bold leading-none sm:text-2xl">{format(d, "d")}</span>
                     <div className="flex min-w-0 flex-col text-[10px] leading-tight text-muted-foreground sm:text-[11px]">
                       <span>{format(d, "yyyy/MM")}</span>
-                      <span className="mt-0.5 inline-block w-fit rounded-md bg-muted px-1.5 py-0.5 text-[10px] uppercase tracking-wide">
+                      <span className="mt-0.5 inline-block w-fit rounded-md bg-muted px-1.5 py-0.5 text-[9px] uppercase tracking-wide sm:text-[10px]">
                         {format(d, "EEE")}
                       </span>
                     </div>
-                    <div className="ml-auto flex shrink-0 items-center gap-2 text-[11px] sm:gap-3 sm:text-sm">
+                    <div className="ml-auto flex shrink-0 flex-col items-end gap-0.5 text-[10px] leading-tight sm:flex-row sm:items-center sm:gap-3 sm:text-sm">
                       <span className="inline-flex items-center gap-0.5 text-income">
                         <ArrowUpRight className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                         {fmtMoney(dayInc)}
@@ -287,7 +321,7 @@ function TransactionsPage() {
       <Button
         onClick={() => { setEditing(null); setOpen(true); }}
         aria-label="Add transaction"
-        className="fixed bottom-20 left-4 z-40 h-14 w-14 rounded-full bg-gradient-emerald p-0 text-primary-foreground shadow-elegant hover:opacity-95 sm:bottom-6 sm:left-6"
+        className="fixed bottom-20 right-4 z-40 h-14 w-14 rounded-full bg-gradient-emerald p-0 text-primary-foreground shadow-elegant hover:opacity-95 sm:bottom-6 sm:right-6"
       >
         <Plus className="h-6 w-6" />
       </Button>
