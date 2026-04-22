@@ -182,22 +182,22 @@ function TransactionsPage() {
       </div>
 
       {/* Totals */}
-      <div className="grid grid-cols-3 gap-2 rounded-2xl border border-border bg-card px-3 py-4 text-center">
-        <div>
-          <p className="text-xs text-muted-foreground">Income</p>
-          <p className="mt-1 font-display text-sm font-semibold text-income sm:text-base">
+      <div className="grid grid-cols-3 gap-2 rounded-2xl border border-border bg-card px-2 py-3 text-center sm:px-3 sm:py-4">
+        <div className="min-w-0">
+          <p className="text-[10px] text-muted-foreground sm:text-xs">Income</p>
+          <p className="mt-1 truncate font-display text-xs font-semibold text-income sm:text-base">
             {fmtMoney(totals.income)}
           </p>
         </div>
-        <div>
-          <p className="text-xs text-muted-foreground">Expenses</p>
-          <p className="mt-1 font-display text-sm font-semibold text-expense sm:text-base">
+        <div className="min-w-0">
+          <p className="text-[10px] text-muted-foreground sm:text-xs">Expenses</p>
+          <p className="mt-1 truncate font-display text-xs font-semibold text-expense sm:text-base">
             {fmtMoney(totals.expense)}
           </p>
         </div>
-        <div>
-          <p className="text-xs text-muted-foreground">Total</p>
-          <p className="mt-1 font-display text-sm font-semibold sm:text-base">
+        <div className="min-w-0">
+          <p className="text-[10px] text-muted-foreground sm:text-xs">Total</p>
+          <p className="mt-1 truncate font-display text-xs font-semibold sm:text-base">
             {fmtMoney(totals.total)}
           </p>
         </div>
