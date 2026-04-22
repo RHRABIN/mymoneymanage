@@ -69,8 +69,19 @@ function TransactionsPage() {
 
   // Filter to current month for daily/calendar views
   const monthTxs = useMemo(
-    () => txs.filter((t) => isSameMonth(parseISO(t.date), cursor)),
-    [txs, cursor],
+    () => {
+      const q = search.trim().toLowerCase();
+      return txs.filter((t) => {
+        if (!isSameMonth(parseISO(t.date), cursor)) return false;
+        if (!q) return true;
+        return (
+          t.title.toLowerCase().includes(q) ||
+          (t.category ?? "").toLowerCase().includes(q) ||
+          String(t.amount).includes(q)
+        );
+      });
+    },
+    [txs, cursor, search],
   );
 
   const totals = useMemo(() => {
