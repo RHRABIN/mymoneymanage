@@ -54,6 +54,7 @@ function TransactionsPage() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Transaction | null>(null);
   const [toDelete, setToDelete] = useState<Transaction | null>(null);
+  const [search, setSearch] = useState("");
 
   const load = async () => {
     setLoading(true);
