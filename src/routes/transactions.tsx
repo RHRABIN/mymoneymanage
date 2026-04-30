@@ -159,6 +159,32 @@ function TransactionsPage() {
         )}
       </div>
 
+      {/* Status filter */}
+      <div className="flex items-center gap-2 overflow-x-auto">
+        {(["all", "pending", "done"] as const).map((s) => {
+          const active = statusFilter === s;
+          const label = s === "all" ? "All" : s === "pending" ? "Pending" : "Done";
+          return (
+            <button
+              key={s}
+              onClick={() => setStatusFilter(s)}
+              className={cn(
+                "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+                active
+                  ? s === "pending"
+                    ? "border-amber-500/40 bg-amber-500/15 text-amber-600 dark:text-amber-400"
+                    : s === "done"
+                      ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                      : "border-primary/40 bg-primary/15 text-foreground"
+                  : "border-border bg-card text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
+
       {/* Tabs */}
       <div className="overflow-x-auto rounded-2xl border border-border bg-card">
         <div className="flex min-w-max">
