@@ -28,6 +28,7 @@ const schema = z.object({
   amount: z.coerce.number().positive("Must be > 0").max(1_000_000_000),
   date: z.string().min(1, "Required"),
   type: z.enum(["income", "expense"]),
+  status: z.enum(["pending", "done"]),
   category: z.string().trim().max(40).optional().or(z.literal("")),
 });
 
