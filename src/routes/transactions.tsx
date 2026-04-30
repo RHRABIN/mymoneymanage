@@ -277,9 +277,21 @@ function TransactionsPage() {
                     {items.map((t) => (
                       <li key={t.id} className="flex items-start gap-2 px-3 py-3 sm:items-center sm:gap-3 sm:px-4">
                         <div className="min-w-0 flex-1">
-                          <p className="text-[10px] uppercase tracking-wide text-muted-foreground sm:text-[11px]">
-                            {t.category || (t.type === "income" ? "Income" : "Expense")}
-                          </p>
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <p className="text-[10px] uppercase tracking-wide text-muted-foreground sm:text-[11px]">
+                              {t.category || (t.type === "income" ? "Income" : "Expense")}
+                            </p>
+                            <span
+                              className={cn(
+                                "inline-flex items-center rounded-full border px-1.5 py-0 text-[9px] font-semibold uppercase tracking-wide sm:text-[10px]",
+                                (t.status ?? "pending") === "done"
+                                  ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                                  : "border-amber-500/40 bg-amber-500/15 text-amber-600 dark:text-amber-400",
+                              )}
+                            >
+                              {(t.status ?? "pending") === "done" ? "Done" : "Pending"}
+                            </span>
+                          </div>
                           <p className="break-all text-sm font-medium text-foreground sm:text-base">{t.title}</p>
                           <span
                             className={cn(
