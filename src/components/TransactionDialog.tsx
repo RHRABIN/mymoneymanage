@@ -57,6 +57,7 @@ export function TransactionDialog({
       amount: initial ? Number(initial.amount) : ("" as unknown as number),
       date: initial?.date ?? new Date().toISOString().slice(0, 10),
       type: initial?.type ?? "expense",
+      status: initial?.status ?? "pending",
       category: initial?.category ?? "",
     },
   });
@@ -68,6 +69,7 @@ export function TransactionDialog({
       amount: vals.amount,
       date: vals.date,
       type: vals.type,
+      status: vals.status,
       category: vals.category?.trim() ? vals.category.trim() : null,
       user_id: userId,
     };
