@@ -31,6 +31,7 @@ function AuthPage() {
   const navigate = useNavigate();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [submitting, setSubmitting] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && user) navigate({ to: "/dashboard" });
@@ -39,12 +40,18 @@ function AuthPage() {
   const form = useForm<Vals>({ resolver: zodResolver(schema), defaultValues: { email: "", password: "" } });
 
   const onSubmit = async (vals: Vals) => {
+    setAuthError(null);
     setSubmitting(true);
     const fn = mode === "signin" ? signIn : signUp;
     const { error } = await fn(vals.email, vals.password);
     setSubmitting(false);
     if (error) {
-      toast.error(error);
+      const msg =
+        mode === "signin" && /invalid|credentials|password/i.test(error)
+          ? "Incorrect email or password."
+          : error;
+      setAuthError(msg);
+      toast.error(msg);
       return;
     }
     if (mode === "signup") {
