@@ -55,6 +55,7 @@ function TransactionsPage() {
   const [editing, setEditing] = useState<Transaction | null>(null);
   const [toDelete, setToDelete] = useState<Transaction | null>(null);
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "done">("all");
 
   const load = async () => {
     setLoading(true);
@@ -73,6 +74,7 @@ function TransactionsPage() {
       const q = search.trim().toLowerCase();
       return txs.filter((t) => {
         if (!isSameMonth(parseISO(t.date), cursor)) return false;
+        if (statusFilter !== "all" && (t.status ?? "pending") !== statusFilter) return false;
         if (!q) return true;
         return (
           t.title.toLowerCase().includes(q) ||
@@ -81,7 +83,7 @@ function TransactionsPage() {
         );
       });
     },
-    [txs, cursor, search],
+    [txs, cursor, search, statusFilter],
   );
 
   const totals = useMemo(() => {
