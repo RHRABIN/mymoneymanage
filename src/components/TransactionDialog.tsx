@@ -141,6 +141,20 @@ export function TransactionDialog({
             </div>
           </div>
 
+          <div className="space-y-2">
+            <Label>Status</Label>
+            <Select
+              value={form.watch("status")}
+              onValueChange={(v) => form.setValue("status", v as "pending" | "done")}
+            >
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="done">Done</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
               Cancel
