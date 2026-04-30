@@ -102,8 +102,19 @@ function AuthPage() {
               )}
             </div>
 
+            {authError && (
+              <div role="alert" className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+                {authError}
+              </div>
+            )}
+
             <Button type="submit" disabled={submitting} className="w-full bg-gradient-emerald text-primary-foreground shadow-elegant hover:opacity-95">
-              {submitting ? "Please wait..." : mode === "signin" ? "Sign in" : "Create account"}
+              {submitting ? (
+                <span className="inline-flex items-center gap-2">
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden />
+                  Signing in...
+                </span>
+              ) : mode === "signin" ? "Sign in" : "Create account"}
             </Button>
             {mode === "signin" && (
               <div className="text-right">
