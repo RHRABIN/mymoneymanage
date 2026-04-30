@@ -1,4 +1,5 @@
 export type TxType = "income" | "expense";
+export type TxStatus = "pending" | "done";
 
 export type Transaction = {
   id: string;
@@ -7,6 +8,7 @@ export type Transaction = {
   amount: number;
   date: string; // YYYY-MM-DD
   type: TxType;
+  status: TxStatus;
   category: string | null;
   created_at: string;
   updated_at: string;

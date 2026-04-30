@@ -28,6 +28,7 @@ const schema = z.object({
   amount: z.coerce.number().positive("Must be > 0").max(1_000_000_000),
   date: z.string().min(1, "Required"),
   type: z.enum(["income", "expense"]),
+  status: z.enum(["pending", "done"]),
   category: z.string().trim().max(40).optional().or(z.literal("")),
 });
 
@@ -56,6 +57,7 @@ export function TransactionDialog({
       amount: initial ? Number(initial.amount) : ("" as unknown as number),
       date: initial?.date ?? new Date().toISOString().slice(0, 10),
       type: initial?.type ?? "expense",
+      status: initial?.status ?? "pending",
       category: initial?.category ?? "",
     },
   });
@@ -67,6 +69,7 @@ export function TransactionDialog({
       amount: vals.amount,
       date: vals.date,
       type: vals.type,
+      status: vals.status,
       category: vals.category?.trim() ? vals.category.trim() : null,
       user_id: userId,
     };
@@ -136,6 +139,20 @@ export function TransactionDialog({
               <Label htmlFor="category">Category</Label>
               <Input id="category" placeholder="Optional" {...form.register("category")} />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Status</Label>
+            <Select
+              value={form.watch("status")}
+              onValueChange={(v) => form.setValue("status", v as "pending" | "done")}
+            >
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="done">Done</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <DialogFooter>

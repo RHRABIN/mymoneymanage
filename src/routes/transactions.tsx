@@ -55,6 +55,7 @@ function TransactionsPage() {
   const [editing, setEditing] = useState<Transaction | null>(null);
   const [toDelete, setToDelete] = useState<Transaction | null>(null);
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "done">("all");
 
   const load = async () => {
     setLoading(true);
@@ -73,6 +74,7 @@ function TransactionsPage() {
       const q = search.trim().toLowerCase();
       return txs.filter((t) => {
         if (!isSameMonth(parseISO(t.date), cursor)) return false;
+        if (statusFilter !== "all" && (t.status ?? "pending") !== statusFilter) return false;
         if (!q) return true;
         return (
           t.title.toLowerCase().includes(q) ||
@@ -81,7 +83,7 @@ function TransactionsPage() {
         );
       });
     },
-    [txs, cursor, search],
+    [txs, cursor, search, statusFilter],
   );
 
   const totals = useMemo(() => {
@@ -155,6 +157,32 @@ function TransactionsPage() {
             <X className="h-4 w-4" />
           </button>
         )}
+      </div>
+
+      {/* Status filter */}
+      <div className="flex items-center gap-2 overflow-x-auto">
+        {(["all", "pending", "done"] as const).map((s) => {
+          const active = statusFilter === s;
+          const label = s === "all" ? "All" : s === "pending" ? "Pending" : "Done";
+          return (
+            <button
+              key={s}
+              onClick={() => setStatusFilter(s)}
+              className={cn(
+                "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+                active
+                  ? s === "pending"
+                    ? "border-amber-500/40 bg-amber-500/15 text-amber-600 dark:text-amber-400"
+                    : s === "done"
+                      ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                      : "border-primary/40 bg-primary/15 text-foreground"
+                  : "border-border bg-card text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Tabs */}
@@ -249,9 +277,21 @@ function TransactionsPage() {
                     {items.map((t) => (
                       <li key={t.id} className="flex items-start gap-2 px-3 py-3 sm:items-center sm:gap-3 sm:px-4">
                         <div className="min-w-0 flex-1">
-                          <p className="text-[10px] uppercase tracking-wide text-muted-foreground sm:text-[11px]">
-                            {t.category || (t.type === "income" ? "Income" : "Expense")}
-                          </p>
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <p className="text-[10px] uppercase tracking-wide text-muted-foreground sm:text-[11px]">
+                              {t.category || (t.type === "income" ? "Income" : "Expense")}
+                            </p>
+                            <span
+                              className={cn(
+                                "inline-flex items-center rounded-full border px-1.5 py-0 text-[9px] font-semibold uppercase tracking-wide sm:text-[10px]",
+                                (t.status ?? "pending") === "done"
+                                  ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                                  : "border-amber-500/40 bg-amber-500/15 text-amber-600 dark:text-amber-400",
+                              )}
+                            >
+                              {(t.status ?? "pending") === "done" ? "Done" : "Pending"}
+                            </span>
+                          </div>
                           <p className="break-all text-sm font-medium text-foreground sm:text-base">{t.title}</p>
                           <span
                             className={cn(
