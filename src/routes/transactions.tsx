@@ -195,13 +195,13 @@ function TransactionsPage() {
                 key={t.key}
                 onClick={() => setTab(t.key)}
                 className={cn(
-                  "relative flex-1 px-4 py-3 text-sm font-medium transition-colors",
+                  "relative flex-1 px-2 py-2.5 text-xs font-medium transition-colors sm:px-4 sm:py-3 sm:text-sm",
                   active ? "text-foreground" : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 {t.label}
                 {active && (
-                  <span className="absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-gradient-emerald" />
+                  <span className="absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-gradient-emerald sm:inset-x-3" />
                 )}
               </button>
             );
@@ -361,9 +361,9 @@ function TransactionsPage() {
       <Button
         onClick={() => { setEditing(null); setOpen(true); }}
         aria-label="Add transaction"
-        className="fixed bottom-20 right-4 z-40 h-14 w-14 rounded-full bg-gradient-emerald p-0 text-primary-foreground shadow-elegant hover:opacity-95 sm:bottom-6 sm:right-6"
+        className="fixed bottom-20 right-4 z-40 h-10 w-10 rounded-full bg-gradient-emerald p-0 text-primary-foreground shadow-elegant hover:opacity-95 sm:bottom-6 sm:right-6"
       >
-        <Plus className="h-6 w-6" />
+        <Plus className="h-5 w-5" />
       </Button>
     </div>
   );
