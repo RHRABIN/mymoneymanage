@@ -79,7 +79,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RouteLoadingOverlay() {
   const isLoading = useRouterState({
-    select: (s) => s.isLoading || s.isTransitioning || s.status === "pending",
+    select: (s) => s.isLoading || s.isTransitioning,
   });
   if (!isLoading) return null;
   return (
