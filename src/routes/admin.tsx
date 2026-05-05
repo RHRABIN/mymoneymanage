@@ -132,16 +132,61 @@ function AdminPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-end justify-between gap-4">
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl font-semibold tracking-tight">Super Admin</h1>
+          <h1 className="font-display text-2xl font-semibold tracking-tight sm:text-3xl">Super Admin</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Manage registered users. Total: {total}
           </p>
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-border bg-card">
+      {/* Mobile card list */}
+      <div className="space-y-3 md:hidden">
+        {loading ? (
+          <div className="rounded-xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
+            Loading...
+          </div>
+        ) : rows.length === 0 ? (
+          <div className="rounded-xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
+            No users found.
+          </div>
+        ) : (
+          rows.map((r) => (
+            <div key={r.user_id} className="rounded-xl border border-border bg-card p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium">{r.full_name || "—"}</p>
+                  <p className="mt-0.5 break-all text-xs text-muted-foreground">{r.email}</p>
+                </div>
+                {r.roles.includes("super_admin") ? (
+                  <Badge className="shrink-0">Super admin</Badge>
+                ) : (
+                  <Badge variant="secondary" className="shrink-0">User</Badge>
+                )}
+              </div>
+              <div className="mt-3 flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">
+                  Joined {new Date(r.created_at).toLocaleDateString()}
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">
+                    {r.is_active ? "Active" : "Inactive"}
+                  </span>
+                  <Switch
+                    checked={r.is_active}
+                    disabled={r.user_id === user?.id}
+                    onCheckedChange={() => toggleActive(r)}
+                  />
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden overflow-hidden rounded-xl border border-border bg-card md:block">
         <Table>
           <TableHeader>
             <TableRow>
