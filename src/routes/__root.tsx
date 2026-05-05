@@ -1,4 +1,4 @@
-import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
+import { Outlet, Link, createRootRoute, HeadContent, Scripts, useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { AuthProvider } from "@/lib/auth";
 import { Toaster } from "@/components/ui/sonner";
@@ -77,6 +77,18 @@ function RootShell({ children }: { children: React.ReactNode }) {
   );
 }
 
+function RouteLoadingOverlay() {
+  const isLoading = useRouterState({
+    select: (s) => s.isLoading || s.isTransitioning || s.status === "pending",
+  });
+  if (!isLoading) return null;
+  return (
+    <div className="fixed inset-0 z-[100] grid place-items-center bg-background/60 backdrop-blur-sm">
+      <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+    </div>
+  );
+}
+
 function RootComponent() {
   useEffect(() => {
     registerPWA();
@@ -84,6 +96,7 @@ function RootComponent() {
 
   return (
     <AuthProvider>
+      <RouteLoadingOverlay />
       <Outlet />
       <Toaster richColors closeButton position="top-right" />
     </AuthProvider>
