@@ -7,6 +7,7 @@ import {
 import { format, parseISO, startOfMonth, subMonths } from "date-fns";
 import { ArrowDownRight, ArrowUpRight, Plus, Wallet } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { NotesSlider } from "@/components/NotesSlider";
 import { RequireAuth } from "@/components/RequireAuth";
 import { TransactionDialog } from "@/components/TransactionDialog";
 import { Button } from "@/components/ui/button";
@@ -225,6 +226,8 @@ function Dashboard() {
           </div>
         </div>
       </div>
+
+      <NotesSlider />
 
       {loading && txs.length === 0 && (
         <p className="text-center text-sm text-muted-foreground">Loading…</p>
