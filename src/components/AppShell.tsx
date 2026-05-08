@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { LayoutDashboard, ListOrdered, LogOut, Menu, X, User, Shield } from "lucide-react";
+import { LayoutDashboard, ListOrdered, LogOut, Menu, X, User, Shield, StickyNote } from "lucide-react";
 import { useState } from "react";
 import { Logo } from "./Logo";
 import { useAuth } from "@/lib/auth";
@@ -14,6 +14,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const NAV = [
     { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { to: "/transactions", label: "Transactions", icon: ListOrdered },
+    { to: "/notes", label: "My Notes", icon: StickyNote },
     { to: "/account", label: "My Account", icon: User },
     ...(isSuperAdmin ? [{ to: "/admin", label: "Super Admin", icon: Shield }] : []),
   ] as const;
