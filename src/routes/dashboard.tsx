@@ -227,6 +227,8 @@ function Dashboard() {
         </div>
       </div>
 
+      <NotesSlider />
+
       {loading && txs.length === 0 && (
         <p className="text-center text-sm text-muted-foreground">Loading…</p>
       )}
