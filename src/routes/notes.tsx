@@ -51,7 +51,7 @@ function NotesPage() {
     if (!user) return;
     setLoading(true);
     const { data, error } = await supabase
-      .from("notes" as never)
+      .from("notes")
       .select("*")
       .order("created_at", { ascending: false });
     if (!error && data) setNotes(data as unknown as Note[]);
@@ -83,8 +83,8 @@ function NotesPage() {
     setSaving(true);
     const payload = { title: title.trim(), content: content.trim(), user_id: user.id };
     const res = editing
-      ? await supabase.from("notes" as never).update(payload).eq("id", editing.id)
-      : await supabase.from("notes" as never).insert(payload);
+      ? await supabase.from("notes").update(payload).eq("id", editing.id)
+      : await supabase.from("notes").insert(payload);
     setSaving(false);
     if (res.error) {
       toast.error(res.error.message);
@@ -96,7 +96,7 @@ function NotesPage() {
   };
 
   const remove = async (n: Note) => {
-    const { error } = await supabase.from("notes" as never).delete().eq("id", n.id);
+    const { error } = await supabase.from("notes").delete().eq("id", n.id);
     if (error) {
       toast.error(error.message);
       return;
