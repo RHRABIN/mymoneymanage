@@ -138,7 +138,7 @@ function NotesPage() {
             >
               <div className="flex items-start justify-between gap-3">
                 <h3 className="font-display text-lg font-semibold leading-tight">{n.title}</h3>
-                <div className="flex shrink-0 gap-1 opacity-0 transition group-hover:opacity-100">
+                <div className="flex shrink-0 gap-1 transition md:opacity-0 md:group-hover:opacity-100">
                   <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => openEdit(n)}>
                     <Pencil className="h-4 w-4" />
                   </Button>
