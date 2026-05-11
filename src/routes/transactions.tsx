@@ -85,7 +85,7 @@ function TransactionsPage() {
         );
       });
     },
-    [txs, cursor, search, statusFilter],
+    [txs, cursor, search, statusFilter, typeFilter],
   );
 
   const totals = useMemo(() => {
