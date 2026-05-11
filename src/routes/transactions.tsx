@@ -187,6 +187,32 @@ function TransactionsPage() {
         })}
       </div>
 
+      {/* Type filter */}
+      <div className="flex items-center gap-2 overflow-x-auto">
+        {(["all", "income", "expense"] as const).map((s) => {
+          const active = typeFilter === s;
+          const label = s === "all" ? "All" : s === "income" ? "Income" : "Expense";
+          return (
+            <button
+              key={s}
+              onClick={() => setTypeFilter(s)}
+              className={cn(
+                "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+                active
+                  ? s === "income"
+                    ? "border-income/40 bg-income/15 text-income"
+                    : s === "expense"
+                      ? "border-expense/40 bg-expense/15 text-expense"
+                      : "border-primary/40 bg-primary/15 text-foreground"
+                  : "border-border bg-card text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
+
       {/* Tabs */}
       <div className="overflow-x-auto rounded-2xl border border-border bg-card">
         <div className="flex min-w-max">
