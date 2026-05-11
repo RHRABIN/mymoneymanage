@@ -76,6 +76,7 @@ function TransactionsPage() {
       return txs.filter((t) => {
         if (!isSameMonth(parseISO(t.date), cursor)) return false;
         if (statusFilter !== "all" && (t.status ?? "pending") !== statusFilter) return false;
+        if (typeFilter !== "all" && t.type !== typeFilter) return false;
         if (!q) return true;
         return (
           t.title.toLowerCase().includes(q) ||
