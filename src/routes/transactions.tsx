@@ -56,6 +56,7 @@ function TransactionsPage() {
   const [toDelete, setToDelete] = useState<Transaction | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "done">("all");
+  const [typeFilter, setTypeFilter] = useState<"all" | "income" | "expense">("all");
 
   const load = async () => {
     setLoading(true);
@@ -75,6 +76,7 @@ function TransactionsPage() {
       return txs.filter((t) => {
         if (!isSameMonth(parseISO(t.date), cursor)) return false;
         if (statusFilter !== "all" && (t.status ?? "pending") !== statusFilter) return false;
+        if (typeFilter !== "all" && t.type !== typeFilter) return false;
         if (!q) return true;
         return (
           t.title.toLowerCase().includes(q) ||
@@ -83,7 +85,7 @@ function TransactionsPage() {
         );
       });
     },
-    [txs, cursor, search, statusFilter],
+    [txs, cursor, search, statusFilter, typeFilter],
   );
 
   const totals = useMemo(() => {
@@ -175,6 +177,32 @@ function TransactionsPage() {
                     ? "border-amber-500/40 bg-amber-500/15 text-amber-600 dark:text-amber-400"
                     : s === "done"
                       ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                      : "border-primary/40 bg-primary/15 text-foreground"
+                  : "border-border bg-card text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Type filter */}
+      <div className="flex items-center gap-2 overflow-x-auto">
+        {(["all", "income", "expense"] as const).map((s) => {
+          const active = typeFilter === s;
+          const label = s === "all" ? "All" : s === "income" ? "Income" : "Expense";
+          return (
+            <button
+              key={s}
+              onClick={() => setTypeFilter(s)}
+              className={cn(
+                "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+                active
+                  ? s === "income"
+                    ? "border-income/40 bg-income/15 text-income"
+                    : s === "expense"
+                      ? "border-expense/40 bg-expense/15 text-expense"
                       : "border-primary/40 bg-primary/15 text-foreground"
                   : "border-border bg-card text-muted-foreground hover:text-foreground",
               )}
