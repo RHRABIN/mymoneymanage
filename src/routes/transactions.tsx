@@ -161,24 +161,47 @@ function TransactionsPage() {
         )}
       </div>
 
-      {/* Status filter */}
-      <div className="flex items-center gap-2 overflow-x-auto">
+      {/* Status + Type filters (combined) */}
+      <div className="flex items-center gap-1 overflow-x-auto rounded-full border border-border bg-card p-1">
         {(["all", "pending", "done"] as const).map((s) => {
           const active = statusFilter === s;
           const label = s === "all" ? "All" : s === "pending" ? "Pending" : "Done";
           return (
             <button
-              key={s}
+              key={`st-${s}`}
               onClick={() => setStatusFilter(s)}
               className={cn(
-                "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+                "shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors",
                 active
                   ? s === "pending"
-                    ? "border-amber-500/40 bg-amber-500/15 text-amber-600 dark:text-amber-400"
+                    ? "bg-amber-500/15 text-amber-600 dark:text-amber-400"
                     : s === "done"
-                      ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
-                      : "border-primary/40 bg-primary/15 text-foreground"
-                  : "border-border bg-card text-muted-foreground hover:text-foreground",
+                      ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                      : "bg-primary/15 text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {label}
+            </button>
+          );
+        })}
+        <span className="mx-1 h-5 w-px shrink-0 bg-border" aria-hidden />
+        {(["all", "income", "expense"] as const).map((s) => {
+          const active = typeFilter === s;
+          const label = s === "all" ? "All" : s === "income" ? "Income" : "Expense";
+          return (
+            <button
+              key={`ty-${s}`}
+              onClick={() => setTypeFilter(s)}
+              className={cn(
+                "shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors",
+                active
+                  ? s === "income"
+                    ? "bg-income/15 text-income"
+                    : s === "expense"
+                      ? "bg-expense/15 text-expense"
+                      : "bg-primary/15 text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
               {label}
@@ -187,31 +210,6 @@ function TransactionsPage() {
         })}
       </div>
 
-      {/* Type filter */}
-      <div className="flex items-center gap-2 overflow-x-auto">
-        {(["all", "income", "expense"] as const).map((s) => {
-          const active = typeFilter === s;
-          const label = s === "all" ? "All" : s === "income" ? "Income" : "Expense";
-          return (
-            <button
-              key={s}
-              onClick={() => setTypeFilter(s)}
-              className={cn(
-                "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
-                active
-                  ? s === "income"
-                    ? "border-income/40 bg-income/15 text-income"
-                    : s === "expense"
-                      ? "border-expense/40 bg-expense/15 text-expense"
-                      : "border-primary/40 bg-primary/15 text-foreground"
-                  : "border-border bg-card text-muted-foreground hover:text-foreground",
-              )}
-            >
-              {label}
-            </button>
-          );
-        })}
-      </div>
 
       {/* Tabs */}
       <div className="overflow-x-auto rounded-2xl border border-border bg-card">
