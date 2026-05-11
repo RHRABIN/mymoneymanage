@@ -56,6 +56,7 @@ function TransactionsPage() {
   const [toDelete, setToDelete] = useState<Transaction | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "done">("all");
+  const [typeFilter, setTypeFilter] = useState<"all" | "income" | "expense">("all");
 
   const load = async () => {
     setLoading(true);
