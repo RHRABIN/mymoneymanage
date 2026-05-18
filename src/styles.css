@@ -34,6 +34,8 @@
   --color-gold-foreground: var(--gold-foreground);
   --color-income: var(--income);
   --color-expense: var(--expense);
+  --color-lending: var(--lending);
+  --color-borrow: var(--borrow);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
@@ -85,6 +87,8 @@
 
   --income: oklch(0.55 0.14 162);
   --expense: oklch(0.6 0.19 28);
+  --lending: oklch(0.7 0.16 60);
+  --borrow: oklch(0.6 0.16 245);
 
   --destructive: oklch(0.55 0.22 27);
   --destructive-foreground: oklch(0.98 0 0);
@@ -129,6 +133,8 @@
   --gold-foreground: oklch(0.18 0.03 165);
   --income: oklch(0.7 0.15 162);
   --expense: oklch(0.7 0.18 28);
+  --lending: oklch(0.78 0.16 60);
+  --borrow: oklch(0.72 0.15 245);
   --destructive: oklch(0.65 0.2 27);
   --destructive-foreground: oklch(0.98 0 0);
   --border: oklch(1 0 0 / 10%);

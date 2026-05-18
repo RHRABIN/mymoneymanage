@@ -21,14 +21,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import type { Transaction } from "@/lib/finance";
+import { PAYMENT_METHODS, TX_TYPES, type PaymentMethod, type Transaction, type TxType } from "@/lib/finance";
 
 const schema = z.object({
   title: z.string().trim().min(1, "Required").max(80),
   amount: z.coerce.number().positive("Must be > 0").max(1_000_000_000),
   date: z.string().min(1, "Required"),
-  type: z.enum(["income", "expense"]),
+  type: z.enum(["income", "expense", "lending", "borrow"]),
   status: z.enum(["pending", "done"]),
+  payment_method: z.enum(["cash", "bkash", "bank"]),
   category: z.string().trim().max(40).optional().or(z.literal("")),
 });
 
@@ -56,8 +57,9 @@ export function TransactionDialog({
       title: initial?.title ?? "",
       amount: initial ? Number(initial.amount) : ("" as unknown as number),
       date: initial?.date ?? new Date().toISOString().slice(0, 10),
-      type: initial?.type ?? "expense",
+      type: (initial?.type ?? "expense") as TxType,
       status: initial?.status ?? "pending",
+      payment_method: (initial?.payment_method ?? "cash") as PaymentMethod,
       category: initial?.category ?? "",
     },
   });
@@ -70,6 +72,7 @@ export function TransactionDialog({
       date: vals.date,
       type: vals.type,
       status: vals.status,
+      payment_method: vals.payment_method,
       category: vals.category?.trim() ? vals.category.trim() : null,
       user_id: userId,
     };
@@ -98,7 +101,7 @@ export function TransactionDialog({
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="title">Title</Label>
-            <Input id="title" placeholder="e.g. Salary, Groceries" {...form.register("title")} />
+            <Input id="title" placeholder="e.g. Monthly Food Budget" {...form.register("title")} />
             {form.formState.errors.title && (
               <p className="text-xs text-destructive">{form.formState.errors.title.message}</p>
             )}
@@ -106,7 +109,7 @@ export function TransactionDialog({
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label htmlFor="amount">Amount</Label>
+              <Label htmlFor="amount">Total Budget</Label>
               <Input id="amount" type="number" step="0.01" placeholder="0.00" {...form.register("amount")} />
               {form.formState.errors.amount && (
                 <p className="text-xs text-destructive">{form.formState.errors.amount.message}</p>
@@ -126,33 +129,50 @@ export function TransactionDialog({
               <Label>Type</Label>
               <Select
                 value={form.watch("type")}
-                onValueChange={(v) => form.setValue("type", v as "income" | "expense")}
+                onValueChange={(v) => form.setValue("type", v as TxType)}
               >
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="income">Income</SelectItem>
-                  <SelectItem value="expense">Expense</SelectItem>
+                  {TX_TYPES.map((t) => (
+                    <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
-              <Input id="category" placeholder="Optional" {...form.register("category")} />
+              <Label>Paid By</Label>
+              <Select
+                value={form.watch("payment_method")}
+                onValueChange={(v) => form.setValue("payment_method", v as PaymentMethod)}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {PAYMENT_METHODS.map((p) => (
+                    <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label>Status</Label>
-            <Select
-              value={form.watch("status")}
-              onValueChange={(v) => form.setValue("status", v as "pending" | "done")}
-            >
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="done">Done</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="category">Category</Label>
+              <Input id="category" placeholder="Optional" {...form.register("category")} />
+            </div>
+            <div className="space-y-2">
+              <Label>Status</Label>
+              <Select
+                value={form.watch("status")}
+                onValueChange={(v) => form.setValue("status", v as "pending" | "done")}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="done">Done</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <DialogFooter>

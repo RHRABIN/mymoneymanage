@@ -4,10 +4,11 @@ import {
   addMonths, addWeeks, eachDayOfInterval, endOfMonth, endOfWeek,
   format, isSameMonth, parseISO, startOfMonth, startOfWeek, subMonths, subWeeks,
 } from "date-fns";
-import { ArrowDownRight, ArrowUpRight, ChevronLeft, ChevronRight, Pencil, Plus, Search, Trash2, X } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, ChevronLeft, ChevronRight, Landmark, Pencil, Plus, Search, Smartphone, Trash2, Wallet, X } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { RequireAuth } from "@/components/RequireAuth";
 import { TransactionDialog } from "@/components/TransactionDialog";
+import { TransactionDetailsSheet } from "@/components/TransactionDetailsSheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -17,7 +18,7 @@ import {
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
-import { fmtMoney, type Transaction } from "@/lib/finance";
+import { fmtMoney, typeBadgeClass, type Transaction, type TxType } from "@/lib/finance";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/transactions")({
@@ -48,6 +49,7 @@ const TABS: { key: TabKey; label: string }[] = [
 function TransactionsPage() {
   const { user } = useAuth();
   const [txs, setTxs] = useState<Transaction[]>([]);
+  const [subTotals, setSubTotals] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<TabKey>("daily");
   const [cursor, setCursor] = useState<Date>(new Date());
@@ -56,7 +58,8 @@ function TransactionsPage() {
   const [toDelete, setToDelete] = useState<Transaction | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "done">("all");
-  const [typeFilter, setTypeFilter] = useState<"all" | "income" | "expense">("all");
+  const [typeFilter, setTypeFilter] = useState<"all" | TxType>("all");
+  const [detailsTx, setDetailsTx] = useState<Transaction | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -64,7 +67,17 @@ function TransactionsPage() {
       .from("transactions")
       .select("*")
       .order("date", { ascending: false });
-    if (!error && data) setTxs(data as Transaction[]);
+    if (!error && data) {
+      setTxs(data as Transaction[]);
+      const { data: subs } = await supabase
+        .from("sub_transactions")
+        .select("transaction_id, amount");
+      const totals: Record<string, number> = {};
+      (subs ?? []).forEach((s: { transaction_id: string; amount: number }) => {
+        totals[s.transaction_id] = (totals[s.transaction_id] ?? 0) + Number(s.amount);
+      });
+      setSubTotals(totals);
+    }
     setLoading(false);
   };
   useEffect(() => { load(); }, []);
@@ -186,22 +199,22 @@ function TransactionsPage() {
           );
         })}
         <span className="mx-1 h-5 w-px shrink-0 bg-border" aria-hidden />
-        {(["all", "income", "expense"] as const).map((s) => {
+        {(["all", "income", "expense", "lending", "borrow"] as const).map((s) => {
           const active = typeFilter === s;
-          const label = s === "all" ? "All" : s === "income" ? "Income" : "Expense";
+          const label = s === "all" ? "All" : s.charAt(0).toUpperCase() + s.slice(1);
+          const activeCls =
+            s === "income" ? "bg-income/15 text-income"
+            : s === "expense" ? "bg-expense/15 text-expense"
+            : s === "lending" ? "bg-lending/15 text-lending"
+            : s === "borrow" ? "bg-borrow/15 text-borrow"
+            : "bg-primary/15 text-foreground";
           return (
             <button
               key={`ty-${s}`}
               onClick={() => setTypeFilter(s)}
               className={cn(
                 "shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors",
-                active
-                  ? s === "income"
-                    ? "bg-income/15 text-income"
-                    : s === "expense"
-                      ? "bg-expense/15 text-expense"
-                      : "bg-primary/15 text-foreground"
-                  : "text-muted-foreground hover:text-foreground",
+                active ? activeCls : "text-muted-foreground hover:text-foreground",
               )}
             >
               {label}
@@ -300,54 +313,67 @@ function TransactionsPage() {
 
                   {/* Day items */}
                   <ul className="divide-y divide-border/60">
-                    {items.map((t) => (
-                      <li key={t.id} className="flex items-start gap-2 px-3 py-3 sm:items-center sm:gap-3 sm:px-4">
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-1.5">
-                            <p className="text-[10px] uppercase tracking-wide text-muted-foreground sm:text-[11px]">
-                              {t.category || (t.type === "income" ? "Income" : "Expense")}
-                            </p>
-                            <span
-                              className={cn(
+                    {items.map((t) => {
+                      const used = subTotals[t.id] ?? 0;
+                      const remaining = Number(t.amount) - used;
+                      const isPosType = t.type === "income" || t.type === "lending";
+                      const methodIcon = t.payment_method === "bkash"
+                        ? <Smartphone className="h-3 w-3" />
+                        : t.payment_method === "bank"
+                          ? <Landmark className="h-3 w-3" />
+                          : <Wallet className="h-3 w-3" />;
+                      return (
+                        <li
+                          key={t.id}
+                          onClick={() => setDetailsTx(t)}
+                          className="flex cursor-pointer items-start gap-2 px-3 py-3 transition-colors hover:bg-muted/30 sm:items-center sm:gap-3 sm:px-4"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              <span className={cn(
+                                "inline-flex items-center rounded-full border px-1.5 py-0 text-[9px] font-semibold uppercase tracking-wide sm:text-[10px]",
+                                typeBadgeClass(t.type),
+                              )}>
+                                {t.type}
+                              </span>
+                              <span className={cn(
                                 "inline-flex items-center rounded-full border px-1.5 py-0 text-[9px] font-semibold uppercase tracking-wide sm:text-[10px]",
                                 (t.status ?? "pending") === "done"
                                   ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
                                   : "border-amber-500/40 bg-amber-500/15 text-amber-600 dark:text-amber-400",
-                              )}
-                            >
-                              {(t.status ?? "pending") === "done" ? "Done" : "Pending"}
-                            </span>
-                          </div>
-                          <p className="break-all text-sm font-medium text-foreground sm:text-base">{t.title}</p>
-                          <span
-                            className={cn(
-                              "mt-1 inline-flex items-center gap-0.5 font-display text-sm font-semibold sm:hidden",
-                              t.type === "income" ? "text-income" : "text-expense",
+                              )}>
+                                {(t.status ?? "pending") === "done" ? "Done" : "Pending"}
+                              </span>
+                              <span className="inline-flex items-center gap-0.5 rounded-full border border-border bg-muted/40 px-1.5 py-0 text-[9px] uppercase tracking-wide sm:text-[10px]">
+                                {methodIcon} {t.payment_method}
+                              </span>
+                            </div>
+                            <p className="mt-1 break-all text-sm font-medium text-foreground sm:text-base">{t.title}</p>
+                            {used > 0 && (
+                              <p className="mt-0.5 text-[10px] text-muted-foreground sm:text-[11px]">
+                                Used <span className="text-expense">{fmtMoney(used)}</span> · Remaining{" "}
+                                <span className={remaining < 0 ? "text-destructive" : "text-income"}>{fmtMoney(remaining)}</span>
+                              </p>
                             )}
-                          >
-                            {t.type === "income" ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}
+                          </div>
+                          <span className={cn(
+                            "shrink-0 font-display text-sm font-semibold sm:inline-flex sm:items-center sm:gap-0.5 sm:text-base",
+                            isPosType ? "text-income" : "text-expense",
+                          )}>
+                            {isPosType ? <ArrowUpRight className="hidden h-4 w-4 sm:inline" /> : <ArrowDownRight className="hidden h-4 w-4 sm:inline" />}
                             {fmtMoney(Number(t.amount))}
                           </span>
-                        </div>
-                        <span
-                          className={cn(
-                            "hidden shrink-0 font-display text-sm font-semibold sm:inline-flex sm:items-center sm:gap-0.5 sm:text-base",
-                            t.type === "income" ? "text-income" : "text-expense",
-                          )}
-                        >
-                          {t.type === "income" ? <ArrowUpRight className="h-4 w-4" /> : <ArrowDownRight className="h-4 w-4" />}
-                          {fmtMoney(Number(t.amount))}
-                        </span>
-                        <div className="flex shrink-0 flex-col gap-0.5 sm:flex-row">
-                          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => { setEditing(t); setOpen(true); }} aria-label="Edit">
-                            <Pencil className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setToDelete(t)} aria-label="Delete">
-                            <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                          </Button>
-                        </div>
-                      </li>
-                    ))}
+                          <div className="flex shrink-0 flex-col gap-0.5 sm:flex-row" onClick={(e) => e.stopPropagation()}>
+                            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => { setEditing(t); setOpen(true); }} aria-label="Edit">
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setToDelete(t)} aria-label="Delete">
+                              <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                            </Button>
+                          </div>
+                        </li>
+                      );
+                    })}
                   </ul>
                 </li>
               );
@@ -363,6 +389,16 @@ function TransactionsPage() {
           userId={user.id}
           initial={editing}
           onSaved={load}
+        />
+      )}
+
+      {user && (
+        <TransactionDetailsSheet
+          tx={detailsTx}
+          open={!!detailsTx}
+          onOpenChange={(v) => !v && setDetailsTx(null)}
+          userId={user.id}
+          onChanged={load}
         />
       )}
 
