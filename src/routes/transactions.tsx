@@ -392,6 +392,16 @@ function TransactionsPage() {
         />
       )}
 
+      {user && (
+        <TransactionDetailsSheet
+          tx={detailsTx}
+          open={!!detailsTx}
+          onOpenChange={(v) => !v && setDetailsTx(null)}
+          userId={user.id}
+          onChanged={load}
+        />
+      )}
+
       <AlertDialog open={!!toDelete} onOpenChange={(v) => !v && setToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
