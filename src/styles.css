@@ -34,6 +34,8 @@
   --color-gold-foreground: var(--gold-foreground);
   --color-income: var(--income);
   --color-expense: var(--expense);
+  --color-lending: var(--lending);
+  --color-borrow: var(--borrow);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
