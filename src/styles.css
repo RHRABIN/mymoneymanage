@@ -133,6 +133,8 @@
   --gold-foreground: oklch(0.18 0.03 165);
   --income: oklch(0.7 0.15 162);
   --expense: oklch(0.7 0.18 28);
+  --lending: oklch(0.78 0.16 60);
+  --borrow: oklch(0.72 0.15 245);
   --destructive: oklch(0.65 0.2 27);
   --destructive-foreground: oklch(0.98 0 0);
   --border: oklch(1 0 0 / 10%);
