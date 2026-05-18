@@ -49,6 +49,7 @@ const TABS: { key: TabKey; label: string }[] = [
 function TransactionsPage() {
   const { user } = useAuth();
   const [txs, setTxs] = useState<Transaction[]>([]);
+  const [subTotals, setSubTotals] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<TabKey>("daily");
   const [cursor, setCursor] = useState<Date>(new Date());
@@ -57,7 +58,8 @@ function TransactionsPage() {
   const [toDelete, setToDelete] = useState<Transaction | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "done">("all");
-  const [typeFilter, setTypeFilter] = useState<"all" | "income" | "expense">("all");
+  const [typeFilter, setTypeFilter] = useState<"all" | TxType>("all");
+  const [detailsTx, setDetailsTx] = useState<Transaction | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -65,7 +67,17 @@ function TransactionsPage() {
       .from("transactions")
       .select("*")
       .order("date", { ascending: false });
-    if (!error && data) setTxs(data as Transaction[]);
+    if (!error && data) {
+      setTxs(data as Transaction[]);
+      const { data: subs } = await supabase
+        .from("sub_transactions")
+        .select("transaction_id, amount");
+      const totals: Record<string, number> = {};
+      (subs ?? []).forEach((s: { transaction_id: string; amount: number }) => {
+        totals[s.transaction_id] = (totals[s.transaction_id] ?? 0) + Number(s.amount);
+      });
+      setSubTotals(totals);
+    }
     setLoading(false);
   };
   useEffect(() => { load(); }, []);
