@@ -71,6 +71,47 @@ export type Database = {
         }
         Relationships: []
       }
+      sub_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          date: string
+          id: string
+          title: string
+          transaction_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          date?: string
+          id?: string
+          title: string
+          transaction_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          date?: string
+          id?: string
+          title?: string
+          transaction_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sub_transactions_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transactions: {
         Row: {
           amount: number
@@ -78,6 +119,7 @@ export type Database = {
           created_at: string
           date: string
           id: string
+          payment_method: string
           status: string
           title: string
           type: string
@@ -90,6 +132,7 @@ export type Database = {
           created_at?: string
           date?: string
           id?: string
+          payment_method?: string
           status?: string
           title: string
           type: string
@@ -102,6 +145,7 @@ export type Database = {
           created_at?: string
           date?: string
           id?: string
+          payment_method?: string
           status?: string
           title?: string
           type?: string
