@@ -199,22 +199,22 @@ function TransactionsPage() {
           );
         })}
         <span className="mx-1 h-5 w-px shrink-0 bg-border" aria-hidden />
-        {(["all", "income", "expense"] as const).map((s) => {
+        {(["all", "income", "expense", "lending", "borrow"] as const).map((s) => {
           const active = typeFilter === s;
-          const label = s === "all" ? "All" : s === "income" ? "Income" : "Expense";
+          const label = s === "all" ? "All" : s.charAt(0).toUpperCase() + s.slice(1);
+          const activeCls =
+            s === "income" ? "bg-income/15 text-income"
+            : s === "expense" ? "bg-expense/15 text-expense"
+            : s === "lending" ? "bg-lending/15 text-lending"
+            : s === "borrow" ? "bg-borrow/15 text-borrow"
+            : "bg-primary/15 text-foreground";
           return (
             <button
               key={`ty-${s}`}
               onClick={() => setTypeFilter(s)}
               className={cn(
                 "shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors",
-                active
-                  ? s === "income"
-                    ? "bg-income/15 text-income"
-                    : s === "expense"
-                      ? "bg-expense/15 text-expense"
-                      : "bg-primary/15 text-foreground"
-                  : "text-muted-foreground hover:text-foreground",
+                active ? activeCls : "text-muted-foreground hover:text-foreground",
               )}
             >
               {label}
