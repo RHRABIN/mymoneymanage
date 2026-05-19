@@ -66,7 +66,7 @@ function TransactionsPage() {
     const { data, error } = await supabase
       .from("transactions")
       .select("*")
-      .order("date", { ascending: false });
+      .order("updated_at", { ascending: false });
     if (!error && data) {
       setTxs(data as Transaction[]);
       const { data: subs } = await supabase
