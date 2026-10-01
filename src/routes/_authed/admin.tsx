@@ -69,7 +69,7 @@ function AdminPage() {
       return;
     }
     const ids = (data ?? []).map((d) => d.user_id);
-    let rolesMap = new Map<string, string[]>();
+    const rolesMap = new Map<string, string[]>();
     if (ids.length) {
       const { data: rolesData } = await supabase
         .from("user_roles")
@@ -97,7 +97,6 @@ function AdminPage() {
 
   useEffect(() => {
     if (isSuperAdmin) fetchPage(page);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSuperAdmin, page]);
 
   const toggleActive = async (row: Row) => {
@@ -126,7 +125,9 @@ function AdminPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-2xl font-semibold tracking-tight sm:text-3xl">Super Admin</h1>
+          <h1 className="font-display text-2xl font-semibold tracking-tight sm:text-3xl">
+            Super Admin
+          </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Manage registered users. Total: {total}
           </p>
@@ -154,7 +155,9 @@ function AdminPage() {
                 {r.roles.includes("super_admin") ? (
                   <Badge className="shrink-0">Super admin</Badge>
                 ) : (
-                  <Badge variant="secondary" className="shrink-0">User</Badge>
+                  <Badge variant="secondary" className="shrink-0">
+                    User
+                  </Badge>
                 )}
               </div>
               <div className="mt-3 flex items-center justify-between">

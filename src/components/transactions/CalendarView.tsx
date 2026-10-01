@@ -1,9 +1,20 @@
-import { eachDayOfInterval, endOfMonth, endOfWeek, format, isSameMonth, startOfMonth, startOfWeek } from "date-fns";
+import {
+  eachDayOfInterval,
+  endOfMonth,
+  endOfWeek,
+  format,
+  isSameMonth,
+  startOfMonth,
+  startOfWeek,
+} from "date-fns";
 import { fmtMoney, type Transaction } from "@/lib/finance";
 import { cn } from "@/lib/utils";
 
 export function CalendarView({ cursor, txs }: { cursor: Date; txs: Transaction[] }) {
-  const days = eachDayOfInterval({ start: startOfWeek(startOfMonth(cursor)), end: endOfWeek(endOfMonth(cursor)) });
+  const days = eachDayOfInterval({
+    start: startOfWeek(startOfMonth(cursor)),
+    end: endOfWeek(endOfMonth(cursor)),
+  });
   const map = new Map<string, { inc: number; exp: number }>();
   for (const t of txs) {
     const cur = map.get(t.date) ?? { inc: 0, exp: 0 };

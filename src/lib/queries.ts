@@ -8,7 +8,8 @@ export type TransactionWithUsed = Tables<"transactions_with_used">;
 // invalidation refreshes lists, totals and categories together.
 export const queryKeys = {
   transactions: ["transactions"] as const,
-  transactionsInRange: (start: string, end: string) => ["transactions", "range", start, end] as const,
+  transactionsInRange: (start: string, end: string) =>
+    ["transactions", "range", start, end] as const,
   monthlyTotals: ["transactions", "monthly"] as const,
   balanceTotals: (start: string) => ["transactions", "balance", start] as const,
   categories: ["transactions", "categories"] as const,

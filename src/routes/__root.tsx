@@ -1,4 +1,11 @@
-import { Outlet, Link, createRootRouteWithContext, HeadContent, Scripts, useRouterState } from "@tanstack/react-router";
+import {
+  Outlet,
+  Link,
+  createRootRouteWithContext,
+  HeadContent,
+  Scripts,
+  useRouterState,
+} from "@tanstack/react-router";
 import { QueryClientProvider, type QueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { AuthProvider } from "@/lib/auth";
@@ -35,10 +42,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Ledger — Personal Finance Dashboard" },
-      { name: "description", content: "Track income, expenses, and savings with a beautiful real-time finance dashboard." },
+      {
+        name: "description",
+        content:
+          "Track income, expenses, and savings with a beautiful real-time finance dashboard.",
+      },
       { name: "author", content: "Ledger" },
       { property: "og:title", content: "Ledger — Personal Finance Dashboard" },
-      { property: "og:description", content: "Track income, expenses, and savings with a beautiful real-time finance dashboard." },
+      {
+        property: "og:description",
+        content:
+          "Track income, expenses, and savings with a beautiful real-time finance dashboard.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "theme-color", content: "#064e3b" },

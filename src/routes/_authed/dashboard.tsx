@@ -1,8 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
-  Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart,
-  ResponsiveContainer, Tooltip, XAxis, YAxis,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Legend,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
 } from "recharts";
 import { format, parseISO, startOfMonth, subMonths } from "date-fns";
 import { ArrowDownRight, ArrowUpRight, Plus, Wallet } from "lucide-react";
@@ -26,7 +37,11 @@ export const Route = createFileRoute("/_authed/dashboard")({
 });
 
 const PIE_COLORS = [
-  "var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)",
+  "var(--chart-1)",
+  "var(--chart-2)",
+  "var(--chart-3)",
+  "var(--chart-4)",
+  "var(--chart-5)",
 ];
 
 function Dashboard() {
@@ -41,7 +56,10 @@ function Dashboard() {
   const { data: rangeRows = [] } = useTransactionsInRange(start, end);
   const { data: balances, isPending: loading } = useBalanceTotals(start);
   const filtered = useMemo(
-    () => [...rangeRows].sort((a, b) => a.date.localeCompare(b.date) || a.created_at.localeCompare(b.created_at)),
+    () =>
+      [...rangeRows].sort(
+        (a, b) => a.date.localeCompare(b.date) || a.created_at.localeCompare(b.created_at),
+      ),
     [rangeRows],
   );
   const period = summarize(filtered);
@@ -85,10 +103,15 @@ function Dashboard() {
     <div className="space-y-6">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Dashboard</h1>
+          <h1 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">
+            Dashboard
+          </h1>
           <p className="mt-1 text-sm text-muted-foreground">A snapshot of your financial health.</p>
         </div>
-        <Button onClick={() => setOpen(true)} className="bg-gradient-emerald text-primary-foreground shadow-elegant hover:opacity-95">
+        <Button
+          onClick={() => setOpen(true)}
+          className="bg-gradient-emerald text-primary-foreground shadow-elegant hover:opacity-95"
+        >
           <Plus className="mr-2 h-4 w-4" /> Add transaction
         </Button>
       </header>
@@ -100,14 +123,27 @@ function Dashboard() {
           <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider opacity-90">
             <Wallet className="h-4 w-4" /> Total balance
           </div>
-          <p className="mt-3 font-display text-4xl font-semibold md:text-5xl">{fmtMoney(balances?.total ?? 0)}</p>
+          <p className="mt-3 font-display text-4xl font-semibold md:text-5xl">
+            {fmtMoney(balances?.total ?? 0)}
+          </p>
           <p className="mt-2 text-sm opacity-90">All-time across all transactions.</p>
           <div className="mt-6 h-32 md:h-40">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={balanceData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-                <Line type="monotone" dataKey="balance" stroke="oklch(0.97 0.02 95)" strokeWidth={2.5} dot={false} />
+                <Line
+                  type="monotone"
+                  dataKey="balance"
+                  stroke="oklch(0.97 0.02 95)"
+                  strokeWidth={2.5}
+                  dot={false}
+                />
                 <Tooltip
-                  contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 12, color: "var(--foreground)" }}
+                  contentStyle={{
+                    background: "var(--popover)",
+                    border: "1px solid var(--border)",
+                    borderRadius: 12,
+                    color: "var(--foreground)",
+                  }}
                   formatter={(v: unknown) => fmtMoney(Number(v))}
                 />
                 <XAxis dataKey="date" tick={{ fill: "oklch(0.97 0.02 95)", fontSize: 10 }} />
@@ -120,41 +156,64 @@ function Dashboard() {
         {/* Income */}
         <div className="md:col-span-2 rounded-2xl border border-border bg-card p-5">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Income</span>
+            <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              Income
+            </span>
             <ArrowUpRight className="h-4 w-4 text-income" />
           </div>
-          <p className="mt-2 font-display text-3xl font-semibold text-income">{fmtMoney(period.income)}</p>
+          <p className="mt-2 font-display text-3xl font-semibold text-income">
+            {fmtMoney(period.income)}
+          </p>
           <p className="mt-1 text-xs text-muted-foreground">In selected period</p>
         </div>
 
         {/* Expense */}
         <div className="md:col-span-1 rounded-2xl border border-border bg-card p-5">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Expense</span>
+            <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              Expense
+            </span>
             <ArrowDownRight className="h-4 w-4 text-expense" />
           </div>
-          <p className="mt-2 font-display text-2xl font-semibold text-expense">{fmtMoney(period.expense)}</p>
+          <p className="mt-2 font-display text-2xl font-semibold text-expense">
+            {fmtMoney(period.expense)}
+          </p>
         </div>
 
         {/* Savings */}
         <div className="md:col-span-3 rounded-2xl bg-gradient-gold p-5 text-gold-foreground shadow-gold">
-          <span className="text-xs font-semibold uppercase tracking-wider opacity-80">Net savings (period)</span>
+          <span className="text-xs font-semibold uppercase tracking-wider opacity-80">
+            Net savings (period)
+          </span>
           <p className="mt-2 font-display text-3xl font-semibold">{fmtMoney(period.balance)}</p>
           <p className="mt-1 text-xs opacity-80">
-            {period.income > 0 ? `${((period.balance / period.income) * 100).toFixed(1)}% saving rate` : "Add income to see saving rate"}
+            {period.income > 0
+              ? `${((period.balance / period.income) * 100).toFixed(1)}% saving rate`
+              : "Add income to see saving rate"}
           </p>
         </div>
 
         {/* Date filter */}
         <div className="md:col-span-3 rounded-2xl border border-border bg-card p-5">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Date range</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            Date range
+          </p>
           <div className="mt-3 grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="start" className="text-xs">Start</Label>
-              <Input id="start" type="date" value={start} onChange={(e) => setStart(e.target.value)} />
+              <Label htmlFor="start" className="text-xs">
+                Start
+              </Label>
+              <Input
+                id="start"
+                type="date"
+                value={start}
+                onChange={(e) => setStart(e.target.value)}
+              />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="end" className="text-xs">End</Label>
+              <Label htmlFor="end" className="text-xs">
+                End
+              </Label>
               <Input id="end" type="date" value={end} onChange={(e) => setEnd(e.target.value)} />
             </div>
           </div>
@@ -170,7 +229,11 @@ function Dashboard() {
                 <XAxis dataKey="month" tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} />
                 <YAxis tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} />
                 <Tooltip
-                  contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 12 }}
+                  contentStyle={{
+                    background: "var(--popover)",
+                    border: "1px solid var(--border)",
+                    borderRadius: 12,
+                  }}
                   formatter={(v: unknown) => fmtMoney(Number(v))}
                 />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
@@ -186,17 +249,30 @@ function Dashboard() {
           <p className="font-display text-lg font-semibold">Expense distribution</p>
           <div className="mt-4 h-72">
             {categoryData.length === 0 ? (
-              <div className="grid h-full place-items-center text-sm text-muted-foreground">No expenses yet</div>
+              <div className="grid h-full place-items-center text-sm text-muted-foreground">
+                No expenses yet
+              </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie data={categoryData} dataKey="value" nameKey="name" innerRadius={50} outerRadius={90} paddingAngle={2}>
+                  <Pie
+                    data={categoryData}
+                    dataKey="value"
+                    nameKey="name"
+                    innerRadius={50}
+                    outerRadius={90}
+                    paddingAngle={2}
+                  >
                     {categoryData.map((_, i) => (
                       <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
                     ))}
                   </Pie>
                   <Tooltip
-                    contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 12 }}
+                    contentStyle={{
+                      background: "var(--popover)",
+                      border: "1px solid var(--border)",
+                      borderRadius: 12,
+                    }}
                     formatter={(v: unknown) => fmtMoney(Number(v))}
                   />
                   <Legend wrapperStyle={{ fontSize: 11 }} />
@@ -209,26 +285,23 @@ function Dashboard() {
 
       <NotesSlider />
 
-      {loading && (
-        <p className="text-center text-sm text-muted-foreground">Loading…</p>
-      )}
+      {loading && <p className="text-center text-sm text-muted-foreground">Loading…</p>}
       {!loading && !hasAny && (
         <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center">
           <p className="font-display text-lg font-semibold">No transactions yet</p>
-          <p className="mt-1 text-sm text-muted-foreground">Add your first entry to see your insights light up.</p>
-          <Button onClick={() => setOpen(true)} className="mt-4 bg-gradient-emerald text-primary-foreground hover:opacity-95">
+          <p className="mt-1 text-sm text-muted-foreground">
+            Add your first entry to see your insights light up.
+          </p>
+          <Button
+            onClick={() => setOpen(true)}
+            className="mt-4 bg-gradient-emerald text-primary-foreground hover:opacity-95"
+          >
             <Plus className="mr-2 h-4 w-4" /> Add transaction
           </Button>
         </div>
       )}
 
-      {user && (
-        <TransactionDialog
-          open={open}
-          onOpenChange={setOpen}
-          userId={user.id}
-        />
-      )}
+      {user && <TransactionDialog open={open} onOpenChange={setOpen} userId={user.id} />}
     </div>
   );
 }

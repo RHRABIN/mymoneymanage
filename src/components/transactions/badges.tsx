@@ -4,7 +4,13 @@ import { cn } from "@/lib/utils";
 
 const PILL = "inline-flex items-center rounded-full border font-semibold uppercase tracking-wide";
 
-export function PaymentMethodIcon({ method, className = "h-3 w-3" }: { method: PaymentMethod; className?: string }) {
+export function PaymentMethodIcon({
+  method,
+  className = "h-3 w-3",
+}: {
+  method: PaymentMethod;
+  className?: string;
+}) {
   if (method === "bkash") return <Smartphone className={className} />;
   if (method === "bank") return <Landmark className={className} />;
   return <Wallet className={className} />;

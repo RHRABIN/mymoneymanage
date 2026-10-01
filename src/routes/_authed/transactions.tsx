@@ -1,7 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
-  addMonths, addWeeks, endOfMonth, endOfWeek, format, startOfMonth, startOfWeek, subMonths, subWeeks,
+  addMonths,
+  addWeeks,
+  endOfMonth,
+  endOfWeek,
+  format,
+  startOfMonth,
+  startOfWeek,
+  subMonths,
+  subWeeks,
 } from "date-fns";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { toast } from "sonner";
@@ -14,12 +22,20 @@ import { MonthlyView } from "@/components/transactions/MonthlyView";
 import { PeriodTotals } from "@/components/transactions/PeriodTotals";
 import { SummaryView } from "@/components/transactions/SummaryView";
 import {
-  TransactionFilters, type StatusFilter, type TypeFilter,
+  TransactionFilters,
+  type StatusFilter,
+  type TypeFilter,
 } from "@/components/transactions/TransactionFilters";
 import { Button } from "@/components/ui/button";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,7 +47,10 @@ export const Route = createFileRoute("/_authed/transactions")({
   head: () => ({
     meta: [
       { title: "Transactions — Ledger" },
-      { name: "description", content: "Manage your income, expense, lending and borrowing transactions." },
+      {
+        name: "description",
+        content: "Manage your income, expense, lending and borrowing transactions.",
+      },
     ],
   }),
   component: TransactionsPage,
@@ -63,7 +82,10 @@ function TransactionsPage() {
   const isWeekly = tab === "weekly";
   const periodStart = isWeekly ? startOfWeek(cursor) : startOfMonth(cursor);
   const periodEnd = isWeekly ? endOfWeek(cursor) : endOfMonth(cursor);
-  const { data: rows = [], isPending } = useTransactionsInRange(toISODate(periodStart), toISODate(periodEnd));
+  const { data: rows = [], isPending } = useTransactionsInRange(
+    toISODate(periodStart),
+    toISODate(periodEnd),
+  );
 
   const periodTxs = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -103,7 +125,9 @@ function TransactionsPage() {
   return (
     <div className="space-y-4">
       <header className="flex items-center justify-between gap-3">
-        <h1 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">Transactions</h1>
+        <h1 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">
+          Transactions
+        </h1>
       </header>
 
       {/* Period nav */}
@@ -201,7 +225,9 @@ function TransactionsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this transaction?</AlertDialogTitle>
             <AlertDialogDescription>
-              {toDelete && <>“{toDelete.title}” and all its sub-transactions will be permanently removed.</>}
+              {toDelete && (
+                <>“{toDelete.title}” and all its sub-transactions will be permanently removed.</>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

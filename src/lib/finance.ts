@@ -22,24 +22,36 @@ export const TX_TYPES: { value: TxType; label: string; color: string }[] = [
 
 export const typeColorClass = (t: TxType) => {
   switch (t) {
-    case "income": return "text-income";
-    case "expense": return "text-expense";
-    case "lending": return "text-lending";
-    case "borrow": return "text-borrow";
+    case "income":
+      return "text-income";
+    case "expense":
+      return "text-expense";
+    case "lending":
+      return "text-lending";
+    case "borrow":
+      return "text-borrow";
   }
 };
 
 export const typeBadgeClass = (t: TxType) => {
   switch (t) {
-    case "income": return "bg-income/15 text-income border-income/40";
-    case "expense": return "bg-expense/15 text-expense border-expense/40";
-    case "lending": return "bg-lending/15 text-lending border-lending/40";
-    case "borrow": return "bg-borrow/15 text-borrow border-borrow/40";
+    case "income":
+      return "bg-income/15 text-income border-income/40";
+    case "expense":
+      return "bg-expense/15 text-expense border-expense/40";
+    case "lending":
+      return "bg-lending/15 text-lending border-lending/40";
+    case "borrow":
+      return "bg-borrow/15 text-borrow border-borrow/40";
   }
 };
 
 export const fmtMoney = (n: number) =>
-  new Intl.NumberFormat("en-BD", { style: "currency", currency: "BDT", maximumFractionDigits: 2 }).format(n);
+  new Intl.NumberFormat("en-BD", {
+    style: "currency",
+    currency: "BDT",
+    maximumFractionDigits: 2,
+  }).format(n);
 
 // Trim and collapse whitespace; blank becomes null (matches the DB check constraint)
 export const normalizeCategory = (c: string | null | undefined) => {

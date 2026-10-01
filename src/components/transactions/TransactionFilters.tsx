@@ -69,7 +69,10 @@ export function TransactionFilters({
             <button
               key={s}
               onClick={() => onStatus(s)}
-              className={cn(PILL, status === s ? STATUS_ACTIVE[s] : "text-muted-foreground hover:text-foreground")}
+              className={cn(
+                PILL,
+                status === s ? STATUS_ACTIVE[s] : "text-muted-foreground hover:text-foreground",
+              )}
             >
               {label(s)}
             </button>
@@ -80,7 +83,10 @@ export function TransactionFilters({
             <button
               key={s}
               onClick={() => onType(s)}
-              className={cn(PILL, type === s ? TYPE_ACTIVE[s] : "text-muted-foreground hover:text-foreground")}
+              className={cn(
+                PILL,
+                type === s ? TYPE_ACTIVE[s] : "text-muted-foreground hover:text-foreground",
+              )}
             >
               {label(s)}
             </button>

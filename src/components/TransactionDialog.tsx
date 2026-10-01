@@ -22,7 +22,15 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { useCategories, useInvalidate } from "@/lib/queries";
-import { normalizeCategory, PAYMENT_METHODS, TX_TYPES, todayISO, type PaymentMethod, type Transaction, type TxType } from "@/lib/finance";
+import {
+  normalizeCategory,
+  PAYMENT_METHODS,
+  TX_TYPES,
+  todayISO,
+  type PaymentMethod,
+  type Transaction,
+  type TxType,
+} from "@/lib/finance";
 
 const schema = z.object({
   title: z.string().trim().min(1, "Required").max(80),
@@ -117,7 +125,13 @@ export function TransactionDialog({
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label htmlFor="amount">Total Budget</Label>
-              <Input id="amount" type="number" step="0.01" placeholder="0.00" {...form.register("amount")} />
+              <Input
+                id="amount"
+                type="number"
+                step="0.01"
+                placeholder="0.00"
+                {...form.register("amount")}
+              />
               {form.formState.errors.amount && (
                 <p className="text-xs text-destructive">{form.formState.errors.amount.message}</p>
               )}
@@ -138,10 +152,14 @@ export function TransactionDialog({
                 value={form.watch("type")}
                 onValueChange={(v) => form.setValue("type", v as TxType)}
               >
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   {TX_TYPES.map((t) => (
-                    <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                    <SelectItem key={t.value} value={t.value}>
+                      {t.label}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -152,10 +170,14 @@ export function TransactionDialog({
                 value={form.watch("payment_method")}
                 onValueChange={(v) => form.setValue("payment_method", v as PaymentMethod)}
               >
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   {PAYMENT_METHODS.map((p) => (
-                    <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                    <SelectItem key={p.value} value={p.value}>
+                      {p.label}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -165,9 +187,17 @@ export function TransactionDialog({
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label htmlFor="category">Category</Label>
-              <Input id="category" placeholder="Optional" list="category-options" autoComplete="off" {...form.register("category")} />
+              <Input
+                id="category"
+                placeholder="Optional"
+                list="category-options"
+                autoComplete="off"
+                {...form.register("category")}
+              />
               <datalist id="category-options">
-                {categories.map((c) => <option key={c} value={c} />)}
+                {categories.map((c) => (
+                  <option key={c} value={c} />
+                ))}
               </datalist>
             </div>
             <div className="space-y-2">
@@ -176,7 +206,9 @@ export function TransactionDialog({
                 value={form.watch("status")}
                 onValueChange={(v) => form.setValue("status", v as "pending" | "done")}
               >
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="pending">Pending</SelectItem>
                   <SelectItem value="done">Done</SelectItem>
@@ -189,7 +221,11 @@ export function TransactionDialog({
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={submitting} className="bg-gradient-emerald text-primary-foreground hover:opacity-95">
+            <Button
+              type="submit"
+              disabled={submitting}
+              className="bg-gradient-emerald text-primary-foreground hover:opacity-95"
+            >
               {submitting ? "Saving..." : isEdit ? "Save changes" : "Add transaction"}
             </Button>
           </DialogFooter>

@@ -16,7 +16,9 @@ export function MonthlyView() {
           const exp = Number(r.expense);
           return (
             <li key={r.month} className="flex items-center justify-between gap-3 px-4 py-3">
-              <span className="font-display text-sm font-semibold">{format(parseISO(r.month), "MMM yyyy")}</span>
+              <span className="font-display text-sm font-semibold">
+                {format(parseISO(r.month), "MMM yyyy")}
+              </span>
               <div className="flex gap-4 text-sm">
                 <span className="text-income">+{fmtMoney(inc)}</span>
                 <span className="text-expense">-{fmtMoney(exp)}</span>

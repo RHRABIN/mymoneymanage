@@ -1,5 +1,14 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { LayoutDashboard, ListOrdered, LogOut, Menu, X, User, Shield, StickyNote } from "lucide-react";
+import {
+  LayoutDashboard,
+  ListOrdered,
+  LogOut,
+  Menu,
+  X,
+  User,
+  Shield,
+  StickyNote,
+} from "lucide-react";
 import { useState } from "react";
 import { Logo } from "./Logo";
 import { useAuth } from "@/lib/auth";

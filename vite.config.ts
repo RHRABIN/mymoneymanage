@@ -32,7 +32,8 @@ export default defineConfig({
       manifest: {
         name: "Ledger — Personal Finance",
         short_name: "Ledger",
-        description: "Track income, expenses, and savings with a beautiful real-time finance dashboard.",
+        description:
+          "Track income, expenses, and savings with a beautiful real-time finance dashboard.",
         theme_color: "#064e3b",
         background_color: "#0a0f0d",
         display: "standalone",

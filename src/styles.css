@@ -69,9 +69,9 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.22 0.04 165);
 
-  --primary: oklch(0.36 0.09 165);            /* deep emerald */
+  --primary: oklch(0.36 0.09 165); /* deep emerald */
   --primary-foreground: oklch(0.97 0.02 95);
-  --primary-glow: oklch(0.52 0.13 162);       /* lighter emerald */
+  --primary-glow: oklch(0.52 0.13 162); /* lighter emerald */
 
   --secondary: oklch(0.95 0.02 95);
   --secondary-foreground: oklch(0.28 0.06 165);
@@ -82,7 +82,7 @@
   --accent: oklch(0.93 0.04 95);
   --accent-foreground: oklch(0.28 0.06 165);
 
-  --gold: oklch(0.78 0.13 85);                /* warm gold accent */
+  --gold: oklch(0.78 0.13 85); /* warm gold accent */
   --gold-foreground: oklch(0.22 0.04 165);
 
   --income: oklch(0.55 0.14 162);
@@ -143,17 +143,37 @@
 }
 
 @layer base {
-  * { border-color: var(--color-border); }
-  html, body { font-family: var(--font-sans); }
+  * {
+    border-color: var(--color-border);
+  }
+  html,
+  body {
+    font-family: var(--font-sans);
+  }
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     background-image:
-      radial-gradient(at 0% 0%, color-mix(in oklab, var(--primary) 10%, transparent) 0px, transparent 50%),
-      radial-gradient(at 100% 0%, color-mix(in oklab, var(--gold) 8%, transparent) 0px, transparent 50%);
+      radial-gradient(
+        at 0% 0%,
+        color-mix(in oklab, var(--primary) 10%, transparent) 0px,
+        transparent 50%
+      ),
+      radial-gradient(
+        at 100% 0%,
+        color-mix(in oklab, var(--gold) 8%, transparent) 0px,
+        transparent 50%
+      );
     background-attachment: fixed;
   }
-  h1, h2, h3, h4, .font-display { font-family: var(--font-display); letter-spacing: -0.02em; }
+  h1,
+  h2,
+  h3,
+  h4,
+  .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
 }
 
 @layer utilities {
@@ -161,7 +181,11 @@
     background-image: linear-gradient(135deg, var(--primary), var(--primary-glow));
   }
   .bg-gradient-gold {
-    background-image: linear-gradient(135deg, var(--gold), color-mix(in oklab, var(--gold) 70%, white));
+    background-image: linear-gradient(
+      135deg,
+      var(--gold),
+      color-mix(in oklab, var(--gold) 70%, white)
+    );
   }
   .shadow-elegant {
     box-shadow: 0 10px 40px -12px color-mix(in oklab, var(--primary) 35%, transparent);

@@ -117,14 +117,23 @@ function AccountPage() {
               <Label htmlFor="full_name">Full name</Label>
               <Input id="full_name" disabled={loading} {...profileForm.register("full_name")} />
               {profileForm.formState.errors.full_name && (
-                <p className="text-xs text-destructive">{profileForm.formState.errors.full_name.message}</p>
+                <p className="text-xs text-destructive">
+                  {profileForm.formState.errors.full_name.message}
+                </p>
               )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" disabled={loading} {...profileForm.register("email")} />
+              <Input
+                id="email"
+                type="email"
+                disabled={loading}
+                {...profileForm.register("email")}
+              />
               {profileForm.formState.errors.email && (
-                <p className="text-xs text-destructive">{profileForm.formState.errors.email.message}</p>
+                <p className="text-xs text-destructive">
+                  {profileForm.formState.errors.email.message}
+                </p>
               )}
             </div>
             <Button type="submit" disabled={savingProfile || loading}>
@@ -143,16 +152,30 @@ function AccountPage() {
           <form onSubmit={passwordForm.handleSubmit(onChangePassword)} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="password">New password</Label>
-              <Input id="password" type="password" autoComplete="new-password" {...passwordForm.register("password")} />
+              <Input
+                id="password"
+                type="password"
+                autoComplete="new-password"
+                {...passwordForm.register("password")}
+              />
               {passwordForm.formState.errors.password && (
-                <p className="text-xs text-destructive">{passwordForm.formState.errors.password.message}</p>
+                <p className="text-xs text-destructive">
+                  {passwordForm.formState.errors.password.message}
+                </p>
               )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirm">Confirm password</Label>
-              <Input id="confirm" type="password" autoComplete="new-password" {...passwordForm.register("confirm")} />
+              <Input
+                id="confirm"
+                type="password"
+                autoComplete="new-password"
+                {...passwordForm.register("confirm")}
+              />
               {passwordForm.formState.errors.confirm && (
-                <p className="text-xs text-destructive">{passwordForm.formState.errors.confirm.message}</p>
+                <p className="text-xs text-destructive">
+                  {passwordForm.formState.errors.confirm.message}
+                </p>
               )}
             </div>
             <Button type="submit" disabled={savingPassword}>

@@ -7,11 +7,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
@@ -39,7 +49,6 @@ function NotesPage() {
   const [content, setContent] = useState("");
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<Note | null>(null);
-
 
   const openNew = () => {
     setEditing(null);
@@ -91,10 +100,17 @@ function NotesPage() {
     <div className="space-y-6">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">My Notes</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Capture ideas, reminders, and to-dos.</p>
+          <h1 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">
+            My Notes
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Capture ideas, reminders, and to-dos.
+          </p>
         </div>
-        <Button onClick={openNew} className="bg-gradient-emerald text-primary-foreground shadow-elegant hover:opacity-95">
+        <Button
+          onClick={openNew}
+          className="bg-gradient-emerald text-primary-foreground shadow-elegant hover:opacity-95"
+        >
           <Plus className="mr-2 h-4 w-4" /> Add note
         </Button>
       </header>
@@ -105,8 +121,13 @@ function NotesPage() {
         <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center">
           <StickyNote className="mx-auto h-8 w-8 text-muted-foreground" />
           <p className="mt-3 font-display text-lg font-semibold">No notes yet</p>
-          <p className="mt-1 text-sm text-muted-foreground">Create your first note to get started.</p>
-          <Button onClick={openNew} className="mt-4 bg-gradient-emerald text-primary-foreground hover:opacity-95">
+          <p className="mt-1 text-sm text-muted-foreground">
+            Create your first note to get started.
+          </p>
+          <Button
+            onClick={openNew}
+            className="mt-4 bg-gradient-emerald text-primary-foreground hover:opacity-95"
+          >
             <Plus className="mr-2 h-4 w-4" /> Add note
           </Button>
         </div>
@@ -120,16 +141,28 @@ function NotesPage() {
               <div className="flex items-start justify-between gap-3">
                 <h3 className="font-display text-lg font-semibold leading-tight">{n.title}</h3>
                 <div className="flex shrink-0 gap-1 transition md:opacity-0 md:group-hover:opacity-100">
-                  <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => openEdit(n)}>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8"
+                    onClick={() => openEdit(n)}
+                  >
                     <Pencil className="h-4 w-4" />
                   </Button>
-                  <Button size="icon" variant="ghost" className="h-8 w-8 text-expense" onClick={() => setConfirmDelete(n)}>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8 text-expense"
+                    onClick={() => setConfirmDelete(n)}
+                  >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
               {n.content && (
-                <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground line-clamp-6">{n.content}</p>
+                <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground line-clamp-6">
+                  {n.content}
+                </p>
               )}
               <p className="mt-4 text-xs text-muted-foreground/70">
                 {format(parseISO(n.created_at), "MMM d, yyyy")}
@@ -147,7 +180,12 @@ function NotesPage() {
           <div className="space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="note-title">Title</Label>
-              <Input id="note-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Note title" />
+              <Input
+                id="note-title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Note title"
+              />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="note-content">Content</Label>
@@ -161,8 +199,14 @@ function NotesPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button onClick={save} disabled={saving} className="bg-gradient-emerald text-primary-foreground hover:opacity-95">
+            <Button variant="ghost" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={save}
+              disabled={saving}
+              className="bg-gradient-emerald text-primary-foreground hover:opacity-95"
+            >
               {saving ? "Saving…" : editing ? "Update" : "Create"}
             </Button>
           </DialogFooter>
@@ -177,7 +221,9 @@ function NotesPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => confirmDelete && remove(confirmDelete)}>Delete</AlertDialogAction>
+            <AlertDialogAction onClick={() => confirmDelete && remove(confirmDelete)}>
+              Delete
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

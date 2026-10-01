@@ -3,7 +3,11 @@ import { Link } from "@tanstack/react-router";
 import { Plus, StickyNote } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import {
-  Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious,
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
 } from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
 import { useNotes } from "@/lib/queries";
@@ -18,10 +22,7 @@ export function NotesSlider() {
           <StickyNote className="h-4 w-4 text-primary" />
           <h2 className="font-display text-lg font-semibold">My Notes</h2>
         </div>
-        <Link
-          to="/notes"
-          className="text-xs font-medium text-primary hover:underline"
-        >
+        <Link to="/notes" className="text-xs font-medium text-primary hover:underline">
           View all
         </Link>
       </header>
@@ -47,9 +48,13 @@ export function NotesSlider() {
             {notes.map((n) => (
               <CarouselItem key={n.id}>
                 <div className="rounded-xl border border-border bg-background p-5 min-h-[140px] flex flex-col">
-                  <h3 className="font-display text-base font-semibold leading-tight line-clamp-1">{n.title}</h3>
+                  <h3 className="font-display text-base font-semibold leading-tight line-clamp-1">
+                    {n.title}
+                  </h3>
                   {n.content && (
-                    <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground line-clamp-3">{n.content}</p>
+                    <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground line-clamp-3">
+                      {n.content}
+                    </p>
                   )}
                   <p className="mt-auto pt-3 text-xs text-muted-foreground/70">
                     {format(parseISO(n.created_at), "MMM d, yyyy")}

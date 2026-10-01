@@ -16,7 +16,12 @@ import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import pg from "pg";
 
-const MIGRATIONS_DIR = join(dirname(fileURLToPath(import.meta.url)), "..", "supabase", "migrations");
+const MIGRATIONS_DIR = join(
+  dirname(fileURLToPath(import.meta.url)),
+  "..",
+  "supabase",
+  "migrations",
+);
 const FILE_RE = /^(\d{14})_(.+)\.sql$/;
 
 const { values: args } = parseArgs({
@@ -65,7 +70,9 @@ async function main() {
 
   let applied = new Set();
   if (has_history) {
-    const { rows } = await client.query("SELECT version FROM supabase_migrations.schema_migrations");
+    const { rows } = await client.query(
+      "SELECT version FROM supabase_migrations.schema_migrations",
+    );
     applied = new Set(rows.map((r) => r.version));
   }
 

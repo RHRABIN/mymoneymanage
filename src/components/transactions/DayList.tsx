@@ -35,14 +35,20 @@ export function DayList({
     <div className="overflow-hidden rounded-2xl border border-border bg-card">
       <ul className="divide-y divide-border">
         {byDay.map(([day, items]) => {
-          const dayInc = items.filter((i) => i.type === "income").reduce((s, t) => s + Number(t.amount), 0);
-          const dayExp = items.filter((i) => i.type === "expense").reduce((s, t) => s + Number(t.amount), 0);
+          const dayInc = items
+            .filter((i) => i.type === "income")
+            .reduce((s, t) => s + Number(t.amount), 0);
+          const dayExp = items
+            .filter((i) => i.type === "expense")
+            .reduce((s, t) => s + Number(t.amount), 0);
           const d = parseISO(day);
           return (
             <li key={day}>
               {/* Day header */}
               <div className="flex items-center gap-2 bg-muted/30 px-2.5 py-2 sm:gap-3 sm:px-4 sm:py-2.5">
-                <span className="font-display text-lg font-bold leading-none sm:text-2xl">{format(d, "d")}</span>
+                <span className="font-display text-lg font-bold leading-none sm:text-2xl">
+                  {format(d, "d")}
+                </span>
                 <div className="flex min-w-0 flex-col text-[10px] leading-tight text-muted-foreground sm:text-[11px]">
                   <span>{format(d, "yyyy/MM")}</span>
                   <span className="mt-0.5 inline-block w-fit rounded-md bg-muted px-1.5 py-0.5 text-[9px] uppercase tracking-wide sm:text-[10px]">
@@ -64,7 +70,13 @@ export function DayList({
               {/* Day items */}
               <ul className="divide-y divide-border/60">
                 {items.map((t) => (
-                  <TransactionRow key={t.id} t={t} onOpen={onOpen} onEdit={onEdit} onDelete={onDelete} />
+                  <TransactionRow
+                    key={t.id}
+                    t={t}
+                    onOpen={onOpen}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                  />
                 ))}
               </ul>
             </li>
@@ -105,7 +117,9 @@ function TransactionRow({
         {used > 0 && (
           <p className="mt-0.5 text-[10px] text-muted-foreground sm:text-[11px]">
             Used <span className="text-expense">{fmtMoney(used)}</span> · Remaining{" "}
-            <span className={remaining < 0 ? "text-destructive" : "text-income"}>{fmtMoney(remaining)}</span>
+            <span className={remaining < 0 ? "text-destructive" : "text-income"}>
+              {fmtMoney(remaining)}
+            </span>
           </p>
         )}
       </div>
@@ -122,11 +136,26 @@ function TransactionRow({
         )}
         {fmtMoney(Number(t.amount))}
       </span>
-      <div className="flex shrink-0 flex-col gap-0.5 sm:flex-row" onClick={(e) => e.stopPropagation()}>
-        <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => onEdit(t)} aria-label="Edit">
+      <div
+        className="flex shrink-0 flex-col gap-0.5 sm:flex-row"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <Button
+          size="icon"
+          variant="ghost"
+          className="h-8 w-8"
+          onClick={() => onEdit(t)}
+          aria-label="Edit"
+        >
           <Pencil className="h-3.5 w-3.5" />
         </Button>
-        <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => onDelete(t)} aria-label="Delete">
+        <Button
+          size="icon"
+          variant="ghost"
+          className="h-8 w-8"
+          onClick={() => onDelete(t)}
+          aria-label="Delete"
+        >
           <Trash2 className="h-3.5 w-3.5 text-destructive" />
         </Button>
       </div>
