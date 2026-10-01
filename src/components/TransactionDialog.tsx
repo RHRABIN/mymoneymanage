@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { useCategories, useInvalidate } from "@/lib/queries";
 import { normalizeCategory, PAYMENT_METHODS, TX_TYPES, todayISO, type PaymentMethod, type Transaction, type TxType } from "@/lib/finance";
 
 const schema = z.object({
@@ -40,17 +41,15 @@ export function TransactionDialog({
   onOpenChange,
   userId,
   initial,
-  onSaved,
-  categories = [],
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   userId: string;
   initial?: Transaction | null;
-  onSaved: () => void;
-  categories?: string[];
 }) {
   const [submitting, setSubmitting] = useState(false);
+  const { data: categories = [] } = useCategories();
+  const invalidate = useInvalidate();
   const isEdit = !!initial;
 
   const form = useForm<FormVals>({
@@ -93,7 +92,7 @@ export function TransactionDialog({
       return;
     }
     toast.success(isEdit ? "Transaction updated" : "Transaction added");
-    onSaved();
+    invalidate.transactions();
     onOpenChange(false);
     form.reset();
   };

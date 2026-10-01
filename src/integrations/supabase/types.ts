@@ -177,9 +177,37 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      transactions_with_used: {
+        Row: {
+          amount: number
+          category: string | null
+          created_at: string
+          date: string
+          id: string
+          payment_method: "cash" | "bkash" | "bank"
+          status: "pending" | "done"
+          title: string
+          type: "income" | "expense" | "lending" | "borrow"
+          updated_at: string
+          used: number
+          user_id: string
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      balance_totals: {
+        Args: { p_start: string }
+        Returns: { total: number; opening: number; tx_count: number }[]
+      }
+      monthly_totals: {
+        Args: Record<PropertyKey, never>
+        Returns: { month: string; income: number; expense: number }[]
+      }
+      user_categories: {
+        Args: Record<PropertyKey, never>
+        Returns: string[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

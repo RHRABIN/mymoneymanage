@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { format, parseISO } from "date-fns";
-import { Pencil, Plus, Trash2, Wallet, Smartphone, Landmark, X } from "lucide-react";
+import { Pencil, Plus, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -11,31 +11,25 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { fmtMoney, todayISO, typeBadgeClass, type Transaction } from "@/lib/finance";
+import { fmtMoney, todayISO, type Transaction } from "@/lib/finance";
+import { useInvalidate, useSubTransactions } from "@/lib/queries";
+import { PaymentBadge, TypeBadge } from "@/components/transactions/badges";
 import { sumSubs, type SubTransaction } from "@/lib/sub-transactions";
 import { cn } from "@/lib/utils";
-
-const methodIcon = (m: string) => {
-  if (m === "bkash") return <Smartphone className="h-3.5 w-3.5" />;
-  if (m === "bank") return <Landmark className="h-3.5 w-3.5" />;
-  return <Wallet className="h-3.5 w-3.5" />;
-};
 
 export function TransactionDetailsSheet({
   tx,
   open,
   onOpenChange,
   userId,
-  onChanged,
 }: {
   tx: Transaction | null;
   open: boolean;
   onOpenChange: (v: boolean) => void;
   userId: string;
-  onChanged: () => void;
 }) {
-  const [subs, setSubs] = useState<SubTransaction[]>([]);
-  const [loading, setLoading] = useState(false);
+  const { data: subs = [], isPending: loading } = useSubTransactions(open ? tx?.id : undefined);
+  const invalidate = useInvalidate();
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState(todayISO());
@@ -48,23 +42,11 @@ export function TransactionDetailsSheet({
     setTitle(""); setAmount(""); setDate(todayISO());
   };
 
-  const load = async (txId: string) => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from("sub_transactions")
-      .select("*")
-      .eq("transaction_id", txId)
-      .order("date", { ascending: false });
-    if (!error && data) setSubs(data);
-    setLoading(false);
-  };
-
+  // Reset the form when a different transaction is opened, not on every data refresh
+  const txId = tx?.id;
   useEffect(() => {
-    if (open && tx) {
-      load(tx.id);
-      resetForm();
-    }
-  }, [open, tx]);
+    if (open && txId) resetForm();
+  }, [open, txId]);
 
   if (!tx) return null;
 
@@ -102,8 +84,7 @@ export function TransactionDetailsSheet({
       toast.success(editingId ? "Sub-transaction updated" : "Sub-transaction added");
     }
     resetForm();
-    load(tx.id);
-    onChanged();
+    invalidate.subTransactions(tx.id);
   };
 
   const handleDelete = async () => {
@@ -113,8 +94,7 @@ export function TransactionDetailsSheet({
     if (error) { toast.error(error.message); return; }
     if (editingId === toDelete.id) resetForm();
     toast.success("Removed");
-    load(tx.id);
-    onChanged();
+    invalidate.subTransactions(tx.id);
   };
 
   return (
@@ -125,12 +105,8 @@ export function TransactionDetailsSheet({
         </SheetHeader>
 
         <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
-          <span className={cn("rounded-full border px-2 py-0.5 font-semibold uppercase tracking-wide", typeBadgeClass(tx.type))}>
-            {tx.type}
-          </span>
-          <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/40 px-2 py-0.5">
-            {methodIcon(tx.payment_method)} {tx.payment_method}
-          </span>
+          <TypeBadge type={tx.type} className="px-2 py-0.5" />
+          <PaymentBadge method={tx.payment_method} className="gap-1 px-2 py-0.5 normal-case tracking-normal" iconClassName="h-3.5 w-3.5" />
           <span className="text-muted-foreground">{format(parseISO(tx.date), "MMM d, yyyy")}</span>
         </div>
 

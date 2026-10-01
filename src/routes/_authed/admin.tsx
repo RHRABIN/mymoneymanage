@@ -1,8 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { AppShell } from "@/components/AppShell";
-import { RequireAuth } from "@/components/RequireAuth";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -25,15 +23,9 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 
-export const Route = createFileRoute("/admin")({
+export const Route = createFileRoute("/_authed/admin")({
   head: () => ({ meta: [{ title: "Super Admin — Ledger" }] }),
-  component: () => (
-    <RequireAuth>
-      <AppShell>
-        <AdminPage />
-      </AppShell>
-    </RequireAuth>
-  ),
+  component: AdminPage,
 });
 
 type Row = {

@@ -4,8 +4,6 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { AppShell } from "@/components/AppShell";
-import { RequireAuth } from "@/components/RequireAuth";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -13,15 +11,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
-export const Route = createFileRoute("/account")({
+export const Route = createFileRoute("/_authed/account")({
   head: () => ({ meta: [{ title: "My Account — Ledger" }] }),
-  component: () => (
-    <RequireAuth>
-      <AppShell>
-        <AccountPage />
-      </AppShell>
-    </RequireAuth>
-  ),
+  component: AccountPage,
 });
 
 const profileSchema = z.object({

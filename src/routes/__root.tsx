@@ -1,4 +1,5 @@
-import { Outlet, Link, createRootRoute, HeadContent, Scripts, useRouterState } from "@tanstack/react-router";
+import { Outlet, Link, createRootRouteWithContext, HeadContent, Scripts, useRouterState } from "@tanstack/react-router";
+import { QueryClientProvider, type QueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { AuthProvider } from "@/lib/auth";
 import { Toaster } from "@/components/ui/sonner";
@@ -28,7 +29,7 @@ function NotFoundComponent() {
   );
 }
 
-export const Route = createRootRoute({
+export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -89,15 +90,18 @@ function RouteLoadingOverlay() {
 }
 
 function RootComponent() {
+  const { queryClient } = Route.useRouteContext();
   useEffect(() => {
     registerPWA();
   }, []);
 
   return (
-    <AuthProvider>
-      <RouteLoadingOverlay />
-      <Outlet />
-      <Toaster richColors closeButton position="top-right" />
-    </AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <RouteLoadingOverlay />
+        <Outlet />
+        <Toaster richColors closeButton position="top-right" />
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }

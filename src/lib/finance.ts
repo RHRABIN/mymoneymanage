@@ -47,12 +47,6 @@ export const normalizeCategory = (c: string | null | undefined) => {
   return v || null;
 };
 
-// Distinct categories used so far, sorted for display
-export const categoryList = (txs: Transaction[]) =>
-  [...new Set(txs.map((t) => t.category).filter((c): c is string => !!c))].sort((a, b) =>
-    a.localeCompare(b),
-  );
-
 // Lending/borrow are tracked separately and never count toward income, expense or balance.
 export function summarize(txs: Transaction[]) {
   let income = 0;
@@ -76,9 +70,3 @@ export const balanceDelta = (t: Transaction) =>
 // Local calendar date as YYYY-MM-DD (toISOString() would give the UTC date).
 export const toISODate = (d: Date) => format(d, "yyyy-MM-dd");
 export const todayISO = () => toISODate(new Date());
-
-export function inRange(t: Transaction, start?: string, end?: string) {
-  if (start && t.date < start) return false;
-  if (end && t.date > end) return false;
-  return true;
-}

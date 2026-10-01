@@ -1,36 +1,28 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 import { format, parseISO, startOfMonth, subMonths } from "date-fns";
 import { ArrowDownRight, ArrowUpRight, Plus, Wallet } from "lucide-react";
-import { AppShell } from "@/components/AppShell";
 import { NotesSlider } from "@/components/NotesSlider";
-import { RequireAuth } from "@/components/RequireAuth";
 import { TransactionDialog } from "@/components/TransactionDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/auth";
-import { supabase } from "@/integrations/supabase/client";
-import { balanceDelta, categoryList, fmtMoney, summarize, todayISO, toISODate, type Transaction } from "@/lib/finance";
+import { balanceDelta, fmtMoney, summarize, todayISO, toISODate } from "@/lib/finance";
+import { useBalanceTotals, useTransactionsInRange } from "@/lib/queries";
 
-export const Route = createFileRoute("/dashboard")({
+export const Route = createFileRoute("/_authed/dashboard")({
   head: () => ({
     meta: [
       { title: "Dashboard — Ledger" },
       { name: "description", content: "Your personal finance dashboard with real-time insights." },
     ],
   }),
-  component: () => (
-    <RequireAuth>
-      <AppShell>
-        <Dashboard />
-      </AppShell>
-    </RequireAuth>
-  ),
+  component: Dashboard,
 });
 
 const PIE_COLORS = [
@@ -39,42 +31,30 @@ const PIE_COLORS = [
 
 function Dashboard() {
   const { user } = useAuth();
-  const [txs, setTxs] = useState<Transaction[]>([]);
-  const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const today = todayISO();
   const sixMonthsAgo = toISODate(subMonths(new Date(), 6));
   const [start, setStart] = useState(sixMonthsAgo);
   const [end, setEnd] = useState(today);
 
-  const load = async () => {
-    if (!user) return;
-    setLoading(true);
-    const { data, error } = await supabase
-      .from("transactions")
-      .select("*")
-      .order("date", { ascending: true });
-    if (!error && data) setTxs(data);
-    setLoading(false);
-  };
-
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [user]);
-
+  // Only the selected range is fetched; all-time figures are summed in the database
+  const { data: rangeRows = [] } = useTransactionsInRange(start, end);
+  const { data: balances, isPending: loading } = useBalanceTotals(start);
   const filtered = useMemo(
-    () => txs.filter((t) => t.date >= start && t.date <= end),
-    [txs, start, end],
+    () => [...rangeRows].sort((a, b) => a.date.localeCompare(b.date) || a.created_at.localeCompare(b.created_at)),
+    [rangeRows],
   );
-  const all = summarize(txs);
   const period = summarize(filtered);
+  const hasAny = (balances?.count ?? 0) > 0;
 
   // Balance over time (cumulative), starting from the balance carried into the period
   const balanceData = useMemo(() => {
-    let bal = txs.filter((t) => t.date < start).reduce((s, t) => s + balanceDelta(t), 0);
+    let bal = balances?.opening ?? 0;
     return filtered.map((t) => {
       bal += balanceDelta(t);
       return { date: t.date, balance: Number(bal.toFixed(2)) };
     });
-  }, [txs, filtered, start]);
+  }, [filtered, balances?.opening]);
 
   // Monthly income vs expense
   const monthlyData = useMemo(() => {
@@ -120,7 +100,7 @@ function Dashboard() {
           <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider opacity-90">
             <Wallet className="h-4 w-4" /> Total balance
           </div>
-          <p className="mt-3 font-display text-4xl font-semibold md:text-5xl">{fmtMoney(all.balance)}</p>
+          <p className="mt-3 font-display text-4xl font-semibold md:text-5xl">{fmtMoney(balances?.total ?? 0)}</p>
           <p className="mt-2 text-sm opacity-90">All-time across all transactions.</p>
           <div className="mt-6 h-32 md:h-40">
             <ResponsiveContainer width="100%" height="100%">
@@ -229,10 +209,10 @@ function Dashboard() {
 
       <NotesSlider />
 
-      {loading && txs.length === 0 && (
+      {loading && (
         <p className="text-center text-sm text-muted-foreground">Loading…</p>
       )}
-      {!loading && txs.length === 0 && (
+      {!loading && !hasAny && (
         <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center">
           <p className="font-display text-lg font-semibold">No transactions yet</p>
           <p className="mt-1 text-sm text-muted-foreground">Add your first entry to see your insights light up.</p>
@@ -247,8 +227,6 @@ function Dashboard() {
           open={open}
           onOpenChange={setOpen}
           userId={user.id}
-          onSaved={load}
-          categories={categoryList(txs)}
         />
       )}
     </div>

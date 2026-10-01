@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -19,8 +20,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const queryClient = useQueryClient();
+  const cachedUserId = useRef<string | null>(null);
 
   useEffect(() => {
+    // Drop cached data whenever the signed-in user changes (sign-out, account switch)
+    const syncCacheOwner = (uid: string | null) => {
+      if (cachedUserId.current !== uid) queryClient.clear();
+      cachedUserId.current = uid;
+    };
+
     const checkRoleAndActive = async (uid: string | undefined) => {
       if (!uid) {
         setIsSuperAdmin(false);
@@ -45,6 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+      syncCacheOwner(s?.user?.id ?? null);
       setSession(s);
       setUser(s?.user ?? null);
       // Defer to avoid deadlock
@@ -55,13 +65,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
     supabase.auth.getSession().then(({ data }) => {
+      syncCacheOwner(data.session?.user?.id ?? null);
       setSession(data.session);
       setUser(data.session?.user ?? null);
       setLoading(false);
       if (data.session?.user) checkRoleAndActive(data.session.user.id);
     });
     return () => sub.subscription.unsubscribe();
-  }, []);
+  }, [queryClient]);
 
   const signIn: AuthCtx["signIn"] = async (email, password) => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });

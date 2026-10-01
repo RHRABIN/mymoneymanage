@@ -1,9 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Pencil, Plus, StickyNote, Trash2 } from "lucide-react";
 import { format, parseISO } from "date-fns";
-import { AppShell } from "@/components/AppShell";
-import { RequireAuth } from "@/components/RequireAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,27 +17,22 @@ import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import type { Note } from "@/lib/notes";
+import { useInvalidate, useNotes } from "@/lib/queries";
 
-export const Route = createFileRoute("/notes")({
+export const Route = createFileRoute("/_authed/notes")({
   head: () => ({
     meta: [
       { title: "My Notes — Ledger" },
       { name: "description", content: "Capture and manage your personal notes." },
     ],
   }),
-  component: () => (
-    <RequireAuth>
-      <AppShell>
-        <NotesPage />
-      </AppShell>
-    </RequireAuth>
-  ),
+  component: NotesPage,
 });
 
 function NotesPage() {
   const { user } = useAuth();
-  const [notes, setNotes] = useState<Note[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: notes = [], isPending: loading } = useNotes();
+  const invalidate = useInvalidate();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Note | null>(null);
   const [title, setTitle] = useState("");
@@ -47,18 +40,6 @@ function NotesPage() {
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<Note | null>(null);
 
-  const load = async () => {
-    if (!user) return;
-    setLoading(true);
-    const { data, error } = await supabase
-      .from("notes")
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (!error && data) setNotes(data);
-    setLoading(false);
-  };
-
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [user]);
 
   const openNew = () => {
     setEditing(null);
@@ -92,7 +73,7 @@ function NotesPage() {
     }
     toast.success(editing ? "Note updated" : "Note created");
     setOpen(false);
-    load();
+    invalidate.notes();
   };
 
   const remove = async (n: Note) => {
@@ -103,7 +84,7 @@ function NotesPage() {
     }
     toast.success("Note deleted");
     setConfirmDelete(null);
-    load();
+    invalidate.notes();
   };
 
   return (

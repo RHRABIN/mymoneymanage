@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import Autoplay from "embla-carousel-autoplay";
 import { Link } from "@tanstack/react-router";
 import { Plus, StickyNote } from "lucide-react";
@@ -7,24 +6,10 @@ import {
   Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious,
 } from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
-import type { Note } from "@/lib/notes";
+import { useNotes } from "@/lib/queries";
 
 export function NotesSlider() {
-  const [notes, setNotes] = useState<Note[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    (async () => {
-      const { data } = await supabase
-        .from("notes")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(10);
-      if (data) setNotes(data);
-      setLoading(false);
-    })();
-  }, []);
+  const { data: notes = [], isPending: loading } = useNotes(10);
 
   return (
     <section className="rounded-2xl border border-border bg-card p-5">
