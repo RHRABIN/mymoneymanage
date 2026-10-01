@@ -6,19 +6,11 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { fmtMoney, todayISO, type Transaction } from "@/lib/finance";
 import { useInvalidate, useSubTransactions } from "@/lib/queries";
+import { deleteWithUndo, useHiddenIds } from "@/lib/undo-delete";
+import { ListSkeleton } from "@/components/ListSkeleton";
 import { PaymentBadge, TypeBadge } from "@/components/transactions/badges";
 import { sumSubs, type SubTransaction } from "@/lib/sub-transactions";
 import { cn } from "@/lib/utils";
@@ -34,14 +26,15 @@ export function TransactionDetailsSheet({
   onOpenChange: (v: boolean) => void;
   userId: string;
 }) {
-  const { data: subs = [], isPending: loading } = useSubTransactions(open ? tx?.id : undefined);
+  const { data: allSubs = [], isPending: loading } = useSubTransactions(open ? tx?.id : undefined);
+  const hiddenIds = useHiddenIds();
+  const subs = allSubs.filter((s) => !hiddenIds.has(s.id));
   const invalidate = useInvalidate();
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState(todayISO());
   const [saving, setSaving] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [toDelete, setToDelete] = useState<SubTransaction | null>(null);
 
   const resetForm = () => {
     setEditingId(null);
@@ -100,17 +93,14 @@ export function TransactionDetailsSheet({
     invalidate.subTransactions(tx.id);
   };
 
-  const handleDelete = async () => {
-    if (!toDelete) return;
-    const { error } = await supabase.from("sub_transactions").delete().eq("id", toDelete.id);
-    setToDelete(null);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    if (editingId === toDelete.id) resetForm();
-    toast.success("Removed");
-    invalidate.subTransactions(tx.id);
+  const handleDelete = (s: SubTransaction) => {
+    if (editingId === s.id) resetForm();
+    deleteWithUndo({
+      id: s.id,
+      message: `"${s.title}" deleted`,
+      run: () => supabase.from("sub_transactions").delete().eq("id", s.id),
+      onDeleted: () => invalidate.subTransactions(tx.id),
+    });
   };
 
   return (
@@ -229,7 +219,7 @@ export function TransactionDetailsSheet({
             Sub-transactions ({subs.length})
           </p>
           {loading ? (
-            <p className="py-6 text-center text-sm text-muted-foreground">Loading…</p>
+            <ListSkeleton rows={2} />
           ) : subs.length === 0 ? (
             <p className="rounded-2xl border border-dashed border-border bg-card py-6 text-center text-sm text-muted-foreground">
               No sub-transactions yet
@@ -252,7 +242,7 @@ export function TransactionDetailsSheet({
                     variant="ghost"
                     className="h-8 w-8"
                     onClick={() => startEdit(s)}
-                    aria-label="Edit"
+                    aria-label={`Edit ${s.title}`}
                   >
                     <Pencil className="h-3.5 w-3.5" />
                   </Button>
@@ -260,8 +250,8 @@ export function TransactionDetailsSheet({
                     size="icon"
                     variant="ghost"
                     className="h-8 w-8"
-                    onClick={() => setToDelete(s)}
-                    aria-label="Delete"
+                    onClick={() => handleDelete(s)}
+                    aria-label={`Delete ${s.title}`}
                   >
                     <Trash2 className="h-3.5 w-3.5 text-destructive" />
                   </Button>
@@ -270,31 +260,6 @@ export function TransactionDetailsSheet({
             </ul>
           )}
         </div>
-
-        <AlertDialog open={!!toDelete} onOpenChange={(v) => !v && setToDelete(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Delete this sub-transaction?</AlertDialogTitle>
-              <AlertDialogDescription>
-                {toDelete && (
-                  <>
-                    “{toDelete.title}” ({fmtMoney(Number(toDelete.amount))}) will be permanently
-                    removed.
-                  </>
-                )}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={handleDelete}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              >
-                Delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
       </SheetContent>
     </Sheet>
   );

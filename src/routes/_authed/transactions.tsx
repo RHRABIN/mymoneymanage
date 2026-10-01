@@ -12,7 +12,6 @@ import {
   subWeeks,
 } from "date-fns";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
-import { toast } from "sonner";
 import { TransactionDialog } from "@/components/TransactionDialog";
 import { TransactionDetailsSheet } from "@/components/TransactionDetailsSheet";
 import { CalendarView } from "@/components/transactions/CalendarView";
@@ -27,20 +26,12 @@ import {
   type TypeFilter,
 } from "@/components/transactions/TransactionFilters";
 import { Button } from "@/components/ui/button";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { summarize, toISODate } from "@/lib/finance";
 import { useInvalidate, useTransactionsInRange, type TransactionWithUsed } from "@/lib/queries";
+import { deleteWithUndo, useHiddenIds } from "@/lib/undo-delete";
+import { ListSkeleton } from "@/components/ListSkeleton";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authed/transactions")({
@@ -72,7 +63,6 @@ function TransactionsPage() {
   const [cursor, setCursor] = useState<Date>(new Date());
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<TransactionWithUsed | null>(null);
-  const [toDelete, setToDelete] = useState<TransactionWithUsed | null>(null);
   const [detailsId, setDetailsId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -87,9 +77,11 @@ function TransactionsPage() {
     toISODate(periodEnd),
   );
 
+  const hiddenIds = useHiddenIds();
   const periodTxs = useMemo(() => {
     const q = search.trim().toLowerCase();
     return rows.filter((t) => {
+      if (hiddenIds.has(t.id)) return false;
       if (statusFilter !== "all" && t.status !== statusFilter) return false;
       if (typeFilter !== "all" && t.type !== typeFilter) return false;
       if (!q) return true;
@@ -99,21 +91,21 @@ function TransactionsPage() {
         String(t.amount).includes(q)
       );
     });
-  }, [rows, search, statusFilter, typeFilter]);
+  }, [rows, hiddenIds, search, statusFilter, typeFilter]);
 
   const totals = useMemo(() => summarize(periodTxs), [periodTxs]);
   // Look the open transaction up in fresh data so the sheet reflects edits
   const detailsTx = rows.find((t) => t.id === detailsId) ?? null;
 
-  const handleDelete = async () => {
-    if (!toDelete) return;
-    const { error } = await supabase.from("transactions").delete().eq("id", toDelete.id);
-    if (error) toast.error(error.message);
-    else {
-      toast.success("Transaction deleted");
-      invalidate.transactions();
-    }
-    setToDelete(null);
+  // Sub-transactions go with it (ON DELETE CASCADE)
+  const handleDelete = (t: TransactionWithUsed) => {
+    if (detailsId === t.id) setDetailsId(null);
+    deleteWithUndo({
+      id: t.id,
+      message: `"${t.title}" deleted`,
+      run: () => supabase.from("transactions").delete().eq("id", t.id),
+      onDeleted: invalidate.transactions,
+    });
   };
 
   const goPrev = () => setCursor((d) => (isWeekly ? subWeeks(d, 1) : subMonths(d, 1)));
@@ -180,7 +172,7 @@ function TransactionsPage() {
       {tab === "monthly" ? (
         <MonthlyView />
       ) : isPending ? (
-        <p className="text-center text-sm text-muted-foreground">Loading…</p>
+        <ListSkeleton rows={4} />
       ) : tab === "calendar" ? (
         <CalendarView cursor={cursor} txs={periodTxs} />
       ) : tab === "summary" ? (
@@ -195,7 +187,7 @@ function TransactionsPage() {
             setEditing(t);
             setOpen(true);
           }}
-          onDelete={setToDelete}
+          onDelete={handleDelete}
         />
       )}
 
@@ -219,28 +211,6 @@ function TransactionsPage() {
           userId={user.id}
         />
       )}
-
-      <AlertDialog open={!!toDelete} onOpenChange={(v) => !v && setToDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete this transaction?</AlertDialogTitle>
-            <AlertDialogDescription>
-              {toDelete && (
-                <>“{toDelete.title}” and all its sub-transactions will be permanently removed.</>
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       {/* Floating Add button */}
       <Button

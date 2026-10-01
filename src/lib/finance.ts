@@ -59,6 +59,9 @@ export const normalizeCategory = (c: string | null | undefined) => {
   return v || null;
 };
 
+// Minimum for new passwords; sign-in accepts any length so older accounts still work
+export const MIN_PASSWORD_LENGTH = 8;
+
 // Lending/borrow are tracked separately and never count toward income, expense or balance.
 export function summarize(txs: Transaction[]) {
   let income = 0;

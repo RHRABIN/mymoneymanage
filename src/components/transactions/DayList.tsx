@@ -104,8 +104,17 @@ function TransactionRow({
   const isInflow = t.type === "income" || t.type === "borrow";
   return (
     <li
+      role="button"
+      tabIndex={0}
+      aria-label={`Open ${t.title}`}
       onClick={() => onOpen(t)}
-      className="flex cursor-pointer items-start gap-2 px-3 py-3 transition-colors hover:bg-muted/30 sm:items-center sm:gap-3 sm:px-4"
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onOpen(t);
+        }
+      }}
+      className="flex cursor-pointer items-start gap-2 px-3 py-3 transition-colors hover:bg-muted/30 focus-visible:bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:items-center sm:gap-3 sm:px-4"
     >
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-1.5">
@@ -139,13 +148,14 @@ function TransactionRow({
       <div
         className="flex shrink-0 flex-col gap-0.5 sm:flex-row"
         onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
       >
         <Button
           size="icon"
           variant="ghost"
           className="h-8 w-8"
           onClick={() => onEdit(t)}
-          aria-label="Edit"
+          aria-label={`Edit ${t.title}`}
         >
           <Pencil className="h-3.5 w-3.5" />
         </Button>
@@ -154,7 +164,7 @@ function TransactionRow({
           variant="ghost"
           className="h-8 w-8"
           onClick={() => onDelete(t)}
-          aria-label="Delete"
+          aria-label={`Delete ${t.title}`}
         >
           <Trash2 className="h-3.5 w-3.5 text-destructive" />
         </Button>

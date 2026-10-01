@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { z } from "zod";
+import { MIN_PASSWORD_LENGTH } from "@/lib/finance";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -24,8 +25,11 @@ type ProfileVals = z.infer<typeof profileSchema>;
 
 const passwordSchema = z
   .object({
-    password: z.string().min(6).max(72),
-    confirm: z.string().min(6).max(72),
+    password: z
+      .string()
+      .min(MIN_PASSWORD_LENGTH, `At least ${MIN_PASSWORD_LENGTH} characters`)
+      .max(72),
+    confirm: z.string().max(72),
   })
   .refine((d) => d.password === d.confirm, { path: ["confirm"], message: "Passwords don't match" });
 type PasswordVals = z.infer<typeof passwordSchema>;

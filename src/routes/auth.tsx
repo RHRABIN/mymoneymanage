@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
+import { MIN_PASSWORD_LENGTH } from "@/lib/finance";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -21,11 +22,16 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
-const schema = z.object({
-  email: z.string().trim().email("Invalid email").max(255),
-  password: z.string().min(6, "Min 6 characters").max(72),
+const email = z.string().trim().email("Invalid email").max(255);
+const signInSchema = z.object({ email, password: z.string().min(1, "Required").max(72) });
+const signUpSchema = z.object({
+  email,
+  password: z
+    .string()
+    .min(MIN_PASSWORD_LENGTH, `At least ${MIN_PASSWORD_LENGTH} characters`)
+    .max(72),
 });
-type Vals = z.infer<typeof schema>;
+type Vals = z.infer<typeof signInSchema>;
 
 function AuthPage() {
   const { user, loading, signIn, signUp } = useAuth();
@@ -56,7 +62,7 @@ function AuthPage() {
   }, [user, loading, navigate]);
 
   const form = useForm<Vals>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(mode === "signin" ? signInSchema : signUpSchema),
     defaultValues: { email: "", password: "" },
   });
 
@@ -230,6 +236,7 @@ function AuthPage() {
           <p className="mt-6 text-center text-sm text-muted-foreground">
             {mode === "signin" ? "Don't have an account?" : "Already have an account?"}{" "}
             <button
+              type="button"
               onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
               className="font-medium text-primary hover:underline"
             >

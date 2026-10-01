@@ -1,11 +1,15 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Search } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import { pageWindow } from "@/lib/pagination";
 import {
   Table,
   TableBody,
@@ -17,6 +21,7 @@ import {
 import {
   Pagination,
   PaginationContent,
+  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
@@ -39,65 +44,69 @@ type Row = {
 
 const PAGE_SIZE = 10;
 
+async function fetchUsers(page: number, search: string) {
+  const from = (page - 1) * PAGE_SIZE;
+  let q = supabase
+    .from("profiles")
+    .select("user_id, full_name, email, is_active, created_at", { count: "exact" })
+    .order("created_at", { ascending: false })
+    .range(from, from + PAGE_SIZE - 1);
+  // Strip characters that have meaning in PostgREST filter syntax
+  const term = search.replace(/[%*,()\\]/g, " ").trim();
+  if (term) q = q.or(`email.ilike.%${term}%,full_name.ilike.%${term}%`);
+  const { data, count, error } = await q;
+  if (error) throw new Error(error.message);
+
+  const ids = (data ?? []).map((d) => d.user_id);
+  const rolesMap = new Map<string, string[]>();
+  if (ids.length) {
+    const { data: rolesData } = await supabase
+      .from("user_roles")
+      .select("user_id, role")
+      .in("user_id", ids);
+    (rolesData ?? []).forEach((r) => {
+      const arr = rolesMap.get(r.user_id) ?? [];
+      arr.push(r.role);
+      rolesMap.set(r.user_id, arr);
+    });
+  }
+  const rows: Row[] = (data ?? []).map((d) => ({ ...d, roles: rolesMap.get(d.user_id) ?? [] }));
+  return { rows, total: count ?? 0 };
+}
+
 function AdminPage() {
-  const { isSuperAdmin, loading: authLoading, user } = useAuth();
+  const { isSuperAdmin, loading: authLoading, rolesLoading, user } = useAuth();
   const navigate = useNavigate();
-  const [rows, setRows] = useState<Row[]>([]);
-  const [total, setTotal] = useState(0);
+  const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(true);
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState("");
+
+  // Search after typing pauses, starting again from the first page
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setSearch(searchInput.trim());
+      setPage(1);
+    }, 300);
+    return () => clearTimeout(t);
+  }, [searchInput]);
 
   useEffect(() => {
-    if (!authLoading && !isSuperAdmin) {
+    if (!authLoading && !rolesLoading && !isSuperAdmin) {
       toast.error("Access denied. Super admin only.");
       navigate({ to: "/dashboard" });
     }
-  }, [authLoading, isSuperAdmin, navigate]);
+  }, [authLoading, rolesLoading, isSuperAdmin, navigate]);
 
-  const fetchPage = async (p: number) => {
-    setLoading(true);
-    const from = (p - 1) * PAGE_SIZE;
-    const to = from + PAGE_SIZE - 1;
-    const { data, count, error } = await supabase
-      .from("profiles")
-      .select("user_id, full_name, email, is_active, created_at", { count: "exact" })
-      .order("created_at", { ascending: false })
-      .range(from, to);
-    if (error) {
-      toast.error(error.message);
-      setLoading(false);
-      return;
-    }
-    const ids = (data ?? []).map((d) => d.user_id);
-    const rolesMap = new Map<string, string[]>();
-    if (ids.length) {
-      const { data: rolesData } = await supabase
-        .from("user_roles")
-        .select("user_id, role")
-        .in("user_id", ids);
-      (rolesData ?? []).forEach((r) => {
-        const arr = rolesMap.get(r.user_id) ?? [];
-        arr.push(r.role);
-        rolesMap.set(r.user_id, arr);
-      });
-    }
-    setRows(
-      (data ?? []).map((d) => ({
-        user_id: d.user_id,
-        full_name: d.full_name,
-        email: d.email,
-        is_active: d.is_active,
-        created_at: d.created_at,
-        roles: rolesMap.get(d.user_id) ?? [],
-      })),
-    );
-    setTotal(count ?? 0);
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    if (isSuperAdmin) fetchPage(page);
-  }, [isSuperAdmin, page]);
+  const usersKey = ["admin", "users", page, search] as const;
+  const { data, isPending: loading } = useQuery({
+    queryKey: usersKey,
+    queryFn: () => fetchUsers(page, search),
+    enabled: isSuperAdmin,
+    placeholderData: keepPreviousData,
+  });
+  const rows = data?.rows ?? [];
+  const total = data?.total ?? 0;
 
   const toggleActive = async (row: Row) => {
     if (row.user_id === user?.id) {
@@ -114,12 +123,12 @@ function AdminPage() {
       return;
     }
     toast.success(next ? "User activated" : "User deactivated");
-    setRows((prev) => prev.map((r) => (r.user_id === row.user_id ? { ...r, is_active: next } : r)));
+    queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
   };
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
-  if (authLoading || !isSuperAdmin) return null;
+  if (authLoading || rolesLoading || !isSuperAdmin) return null;
 
   return (
     <div className="space-y-6">
@@ -129,8 +138,18 @@ function AdminPage() {
             Super Admin
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Manage registered users. Total: {total}
+            Manage registered users. {search ? "Matches" : "Total"}: {total}
           </p>
+        </div>
+        <div className="relative w-full sm:w-72">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="Search name or email"
+            aria-label="Search users by name or email"
+            className="pl-9"
+          />
         </div>
       </div>
 
@@ -251,20 +270,26 @@ function AdminPage() {
                 }}
               />
             </PaginationItem>
-            {Array.from({ length: totalPages }).map((_, i) => (
-              <PaginationItem key={i}>
-                <PaginationLink
-                  href="#"
-                  isActive={page === i + 1}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setPage(i + 1);
-                  }}
-                >
-                  {i + 1}
-                </PaginationLink>
-              </PaginationItem>
-            ))}
+            {pageWindow(page, totalPages).map((p, i) =>
+              p === "gap" ? (
+                <PaginationItem key={`gap-${i}`}>
+                  <PaginationEllipsis />
+                </PaginationItem>
+              ) : (
+                <PaginationItem key={p}>
+                  <PaginationLink
+                    href="#"
+                    isActive={page === p}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setPage(p);
+                    }}
+                  >
+                    {p}
+                  </PaginationLink>
+                </PaginationItem>
+              ),
+            )}
             <PaginationItem>
               <PaginationNext
                 href="#"

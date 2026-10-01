@@ -124,7 +124,7 @@ export function TransactionDialog({
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label htmlFor="amount">Total Budget</Label>
+              <Label htmlFor="amount">Amount</Label>
               <Input
                 id="amount"
                 type="number"

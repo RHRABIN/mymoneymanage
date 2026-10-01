@@ -1,12 +1,13 @@
 import { format, parseISO } from "date-fns";
 import { fmtMoney } from "@/lib/finance";
 import { useMonthlyTotals } from "@/lib/queries";
+import { ListSkeleton } from "@/components/ListSkeleton";
 import { EmptyState } from "./EmptyState";
 
 // Income/expense per month across all time, summed in the database
 export function MonthlyView() {
   const { data: rows, isPending } = useMonthlyTotals();
-  if (isPending) return <p className="text-center text-sm text-muted-foreground">Loading…</p>;
+  if (isPending) return <ListSkeleton rows={3} />;
   if (!rows?.length) return <EmptyState />;
   return (
     <div className="overflow-hidden rounded-2xl border border-border bg-card">

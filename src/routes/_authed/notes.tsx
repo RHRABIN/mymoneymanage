@@ -13,21 +13,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import type { Note } from "@/lib/notes";
 import { useInvalidate, useNotes } from "@/lib/queries";
+import { deleteWithUndo, useHiddenIds } from "@/lib/undo-delete";
+import { ListSkeleton } from "@/components/ListSkeleton";
 
 export const Route = createFileRoute("/_authed/notes")({
   head: () => ({
@@ -48,7 +40,6 @@ function NotesPage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [saving, setSaving] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState<Note | null>(null);
 
   const openNew = () => {
     setEditing(null);
@@ -85,16 +76,16 @@ function NotesPage() {
     invalidate.notes();
   };
 
-  const remove = async (n: Note) => {
-    const { error } = await supabase.from("notes").delete().eq("id", n.id);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    toast.success("Note deleted");
-    setConfirmDelete(null);
-    invalidate.notes();
-  };
+  const hiddenIds = useHiddenIds();
+  const visibleNotes = notes.filter((n) => !hiddenIds.has(n.id));
+
+  const remove = (n: Note) =>
+    deleteWithUndo({
+      id: n.id,
+      message: `"${n.title}" deleted`,
+      run: () => supabase.from("notes").delete().eq("id", n.id),
+      onDeleted: invalidate.notes,
+    });
 
   return (
     <div className="space-y-6">
@@ -115,9 +106,9 @@ function NotesPage() {
         </Button>
       </header>
 
-      {loading && notes.length === 0 ? (
-        <p className="text-center text-sm text-muted-foreground">Loading…</p>
-      ) : notes.length === 0 ? (
+      {loading ? (
+        <ListSkeleton rows={3} />
+      ) : visibleNotes.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center">
           <StickyNote className="mx-auto h-8 w-8 text-muted-foreground" />
           <p className="mt-3 font-display text-lg font-semibold">No notes yet</p>
@@ -133,19 +124,20 @@ function NotesPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {notes.map((n) => (
+          {visibleNotes.map((n) => (
             <article
               key={n.id}
               className="group flex flex-col rounded-2xl border border-border bg-card p-5 shadow-sm transition hover:shadow-elegant"
             >
               <div className="flex items-start justify-between gap-3">
                 <h3 className="font-display text-lg font-semibold leading-tight">{n.title}</h3>
-                <div className="flex shrink-0 gap-1 transition md:opacity-0 md:group-hover:opacity-100">
+                <div className="flex shrink-0 gap-1 transition md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100">
                   <Button
                     size="icon"
                     variant="ghost"
                     className="h-8 w-8"
                     onClick={() => openEdit(n)}
+                    aria-label={`Edit note ${n.title}`}
                   >
                     <Pencil className="h-4 w-4" />
                   </Button>
@@ -153,7 +145,8 @@ function NotesPage() {
                     size="icon"
                     variant="ghost"
                     className="h-8 w-8 text-expense"
-                    onClick={() => setConfirmDelete(n)}
+                    onClick={() => remove(n)}
+                    aria-label={`Delete note ${n.title}`}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -212,21 +205,6 @@ function NotesPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      <AlertDialog open={!!confirmDelete} onOpenChange={(v) => !v && setConfirmDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete this note?</AlertDialogTitle>
-            <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => confirmDelete && remove(confirmDelete)}>
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

@@ -22,6 +22,7 @@ import { TransactionDialog } from "@/components/TransactionDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/lib/auth";
 import { balanceDelta, fmtMoney, summarize, todayISO, toISODate } from "@/lib/finance";
 import { useBalanceTotals, useTransactionsInRange } from "@/lib/queries";
@@ -53,7 +54,7 @@ function Dashboard() {
   const [end, setEnd] = useState(today);
 
   // Only the selected range is fetched; all-time figures are summed in the database
-  const { data: rangeRows = [] } = useTransactionsInRange(start, end);
+  const { data: rangeRows = [], isPending: rangeLoading } = useTransactionsInRange(start, end);
   const { data: balances, isPending: loading } = useBalanceTotals(start);
   const filtered = useMemo(
     () =>
@@ -123,10 +124,16 @@ function Dashboard() {
           <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider opacity-90">
             <Wallet className="h-4 w-4" /> Total balance
           </div>
-          <p className="mt-3 font-display text-4xl font-semibold md:text-5xl">
-            {fmtMoney(balances?.total ?? 0)}
+          <div className="mt-3 font-display text-4xl font-semibold md:text-5xl">
+            {loading ? (
+              <Skeleton className="h-12 w-56 bg-white/20" />
+            ) : (
+              fmtMoney(balances?.total ?? 0)
+            )}
+          </div>
+          <p className="mt-2 text-sm opacity-90">
+            All time: income minus expenses, excluding lending and borrowing.
           </p>
-          <p className="mt-2 text-sm opacity-90">All-time across all transactions.</p>
           <div className="mt-6 h-32 md:h-40">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={balanceData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
@@ -161,9 +168,9 @@ function Dashboard() {
             </span>
             <ArrowUpRight className="h-4 w-4 text-income" />
           </div>
-          <p className="mt-2 font-display text-3xl font-semibold text-income">
-            {fmtMoney(period.income)}
-          </p>
+          <div className="mt-2 font-display text-3xl font-semibold text-income">
+            {rangeLoading ? <Skeleton className="h-9 w-40" /> : fmtMoney(period.income)}
+          </div>
           <p className="mt-1 text-xs text-muted-foreground">In selected period</p>
         </div>
 
@@ -175,9 +182,9 @@ function Dashboard() {
             </span>
             <ArrowDownRight className="h-4 w-4 text-expense" />
           </div>
-          <p className="mt-2 font-display text-2xl font-semibold text-expense">
-            {fmtMoney(period.expense)}
-          </p>
+          <div className="mt-2 font-display text-2xl font-semibold text-expense">
+            {rangeLoading ? <Skeleton className="h-8 w-32" /> : fmtMoney(period.expense)}
+          </div>
         </div>
 
         {/* Savings */}
@@ -185,7 +192,13 @@ function Dashboard() {
           <span className="text-xs font-semibold uppercase tracking-wider opacity-80">
             Net savings (period)
           </span>
-          <p className="mt-2 font-display text-3xl font-semibold">{fmtMoney(period.balance)}</p>
+          <div className="mt-2 font-display text-3xl font-semibold">
+            {rangeLoading ? (
+              <Skeleton className="h-9 w-40 bg-black/10" />
+            ) : (
+              fmtMoney(period.balance)
+            )}
+          </div>
           <p className="mt-1 text-xs opacity-80">
             {period.income > 0
               ? `${((period.balance / period.income) * 100).toFixed(1)}% saving rate`
@@ -285,7 +298,6 @@ function Dashboard() {
 
       <NotesSlider />
 
-      {loading && <p className="text-center text-sm text-muted-foreground">Loading…</p>}
       {!loading && !hasAny && (
         <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center">
           <p className="font-display text-lg font-semibold">No transactions yet</p>

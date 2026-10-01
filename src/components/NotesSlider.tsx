@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
 import { useNotes } from "@/lib/queries";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function NotesSlider() {
   const { data: notes = [], isPending: loading } = useNotes(10);
@@ -28,7 +29,7 @@ export function NotesSlider() {
       </header>
 
       {loading ? (
-        <p className="text-center text-sm text-muted-foreground">Loading…</p>
+        <Skeleton className="h-28 w-full rounded-xl" />
       ) : notes.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border p-6 text-center">
           <p className="text-sm text-muted-foreground">No notes yet.</p>
