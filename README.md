@@ -85,5 +85,19 @@ These are set in the dashboard, not in code:
 
 ## Deployment
 
-`npm run build` produces `dist/client` (static assets) and `dist/server` (SSR server). No
-hosting target is configured yet.
+The server build uses [Nitro](https://nitro.build). `npm run build` writes `.output/`, which runs
+anywhere Node runs: `npm start` (reads `.env`).
+
+### Vercel
+
+1. Import the GitHub repo in Vercel (Add New → Project). The framework is detected from the build
+   output; no extra settings are needed.
+2. Add environment variables: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`,
+   `VITE_SUPABASE_PROJECT_ID`, `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`. Do **not** add
+   `DATABASE_URL`; only the migration script needs it.
+3. In Supabase → Authentication → URL Configuration, set the Site URL to the Vercel domain and add
+   `https://<your-domain>/**` (and `https://*-<your-vercel-team>.vercel.app/**` for preview
+   deployments) to the redirect URLs.
+
+On Vercel (`VERCEL=1`) the build writes `.vercel/output` instead, and the PWA service worker is
+generated into its static folder. Preview deployments use the same Supabase project as production.
