@@ -4,7 +4,13 @@ import tailwindcss from "@tailwindcss/vite";
 import tsConfigPaths from "vite-tsconfig-paths";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
+import { nitro } from "nitro/vite";
 import { VitePWA } from "vite-plugin-pwa";
+
+// Where Nitro writes the static files it serves. The service worker must be
+// generated there, after the client build, so it can precache the real assets.
+const onVercel = !!process.env.VERCEL || process.env.NITRO_PRESET === "vercel";
+const staticOutDir = onVercel ? ".vercel/output/static" : ".output/public";
 
 export default defineConfig({
   server: { host: "::", port: 8080 },
@@ -22,9 +28,12 @@ export default defineConfig({
         client: { files: ["**/server/**"], specifiers: ["server-only"] },
       },
     }),
+    // Server build adapter; on Vercel the preset is picked automatically
+    nitro(),
     viteReact(),
     VitePWA({
       registerType: "autoUpdate",
+      outDir: staticOutDir,
       injectRegister: false,
       devOptions: {
         enabled: false,
