@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { z } from "zod";
+import { MIN_PASSWORD_LENGTH } from "@/lib/finance";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -17,8 +18,11 @@ export const Route = createFileRoute("/reset-password")({
 
 const schema = z
   .object({
-    password: z.string().min(6, "Min 6 characters").max(72),
-    confirm: z.string().min(6).max(72),
+    password: z
+      .string()
+      .min(MIN_PASSWORD_LENGTH, `At least ${MIN_PASSWORD_LENGTH} characters`)
+      .max(72),
+    confirm: z.string().max(72),
   })
   .refine((d) => d.password === d.confirm, { path: ["confirm"], message: "Passwords don't match" });
 type Vals = z.infer<typeof schema>;
@@ -27,7 +31,10 @@ function ResetPasswordPage() {
   const navigate = useNavigate();
   const [ready, setReady] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const form = useForm<Vals>({ resolver: zodResolver(schema), defaultValues: { password: "", confirm: "" } });
+  const form = useForm<Vals>({
+    resolver: zodResolver(schema),
+    defaultValues: { password: "", confirm: "" },
+  });
 
   useEffect(() => {
     // Supabase will put tokens in the URL hash and create a recovery session automatically.
@@ -56,21 +63,33 @@ function ResetPasswordPage() {
     <div className="flex min-h-screen items-center justify-center p-6">
       <div className="w-full max-w-sm">
         <Logo />
-        <h1 className="mt-8 font-display text-3xl font-semibold tracking-tight">Set a new password</h1>
+        <h1 className="mt-8 font-display text-3xl font-semibold tracking-tight">
+          Set a new password
+        </h1>
         <p className="mt-2 text-sm text-muted-foreground">
           {ready ? "Enter your new password below." : "Validating reset link..."}
         </p>
         <form onSubmit={form.handleSubmit(onSubmit)} className="mt-8 space-y-4">
           <div className="space-y-2">
             <Label htmlFor="password">New password</Label>
-            <Input id="password" type="password" autoComplete="new-password" {...form.register("password")} />
+            <Input
+              id="password"
+              type="password"
+              autoComplete="new-password"
+              {...form.register("password")}
+            />
             {form.formState.errors.password && (
               <p className="text-xs text-destructive">{form.formState.errors.password.message}</p>
             )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="confirm">Confirm password</Label>
-            <Input id="confirm" type="password" autoComplete="new-password" {...form.register("confirm")} />
+            <Input
+              id="confirm"
+              type="password"
+              autoComplete="new-password"
+              {...form.register("confirm")}
+            />
             {form.formState.errors.confirm && (
               <p className="text-xs text-destructive">{form.formState.errors.confirm.message}</p>
             )}

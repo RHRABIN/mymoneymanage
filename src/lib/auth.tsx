@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -7,6 +8,8 @@ type AuthCtx = {
   session: Session | null;
   loading: boolean;
   isSuperAdmin: boolean;
+  // True until the role check for the current user has finished
+  rolesLoading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signUp: (email: string, password: string, fullName?: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
@@ -19,19 +22,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [rolesLoading, setRolesLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const cachedUserId = useRef<string | null>(null);
 
   useEffect(() => {
+    // Drop cached data whenever the signed-in user changes (sign-out, account switch)
+    const syncCacheOwner = (uid: string | null) => {
+      if (cachedUserId.current !== uid) queryClient.clear();
+      cachedUserId.current = uid;
+    };
+
     const checkRoleAndActive = async (uid: string | undefined) => {
       if (!uid) {
         setIsSuperAdmin(false);
+        setRolesLoading(false);
         return;
       }
+      setRolesLoading(true);
       const [{ data: roles }, { data: profile }] = await Promise.all([
         supabase.from("user_roles").select("role").eq("user_id", uid),
         supabase.from("profiles").select("is_active").eq("user_id", uid).maybeSingle(),
       ]);
       const admin = !!roles?.some((r) => r.role === "super_admin");
       setIsSuperAdmin(admin);
+      setRolesLoading(false);
       if (profile && profile.is_active === false) {
         await supabase.auth.signOut();
         setUser(null);
@@ -45,23 +60,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+      syncCacheOwner(s?.user?.id ?? null);
       setSession(s);
       setUser(s?.user ?? null);
       // Defer to avoid deadlock
       if (s?.user) {
+        setRolesLoading(true);
         setTimeout(() => checkRoleAndActive(s.user.id), 0);
       } else {
         setIsSuperAdmin(false);
+        setRolesLoading(false);
       }
     });
     supabase.auth.getSession().then(({ data }) => {
+      syncCacheOwner(data.session?.user?.id ?? null);
       setSession(data.session);
       setUser(data.session?.user ?? null);
       setLoading(false);
-      if (data.session?.user) checkRoleAndActive(data.session.user.id);
+      checkRoleAndActive(data.session?.user?.id);
     });
     return () => sub.subscription.unsubscribe();
-  }, []);
+  }, [queryClient]);
 
   const signIn: AuthCtx["signIn"] = async (email, password) => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -96,7 +115,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <Ctx.Provider value={{ user, session, loading, isSuperAdmin, signIn, signUp, signOut }}>
+    <Ctx.Provider
+      value={{ user, session, loading, isSuperAdmin, rolesLoading, signIn, signUp, signOut }}
+    >
       {children}
     </Ctx.Provider>
   );

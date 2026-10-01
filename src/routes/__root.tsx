@@ -1,4 +1,12 @@
-import { Outlet, Link, createRootRoute, HeadContent, Scripts, useRouterState } from "@tanstack/react-router";
+import {
+  Outlet,
+  Link,
+  createRootRouteWithContext,
+  HeadContent,
+  Scripts,
+  useRouterState,
+} from "@tanstack/react-router";
+import { QueryClientProvider, type QueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { AuthProvider } from "@/lib/auth";
 import { Toaster } from "@/components/ui/sonner";
@@ -28,19 +36,26 @@ function NotFoundComponent() {
   );
 }
 
-export const Route = createRootRoute({
+export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Ledger — Personal Finance Dashboard" },
-      { name: "description", content: "Track income, expenses, and savings with a beautiful real-time finance dashboard." },
+      {
+        name: "description",
+        content:
+          "Track income, expenses, and savings with a beautiful real-time finance dashboard.",
+      },
       { name: "author", content: "Ledger" },
       { property: "og:title", content: "Ledger — Personal Finance Dashboard" },
-      { property: "og:description", content: "Track income, expenses, and savings with a beautiful real-time finance dashboard." },
+      {
+        property: "og:description",
+        content:
+          "Track income, expenses, and savings with a beautiful real-time finance dashboard.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
       { name: "theme-color", content: "#064e3b" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
@@ -90,15 +105,18 @@ function RouteLoadingOverlay() {
 }
 
 function RootComponent() {
+  const { queryClient } = Route.useRouteContext();
   useEffect(() => {
     registerPWA();
   }, []);
 
   return (
-    <AuthProvider>
-      <RouteLoadingOverlay />
-      <Outlet />
-      <Toaster richColors closeButton position="top-right" />
-    </AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <RouteLoadingOverlay />
+        <Outlet />
+        <Toaster richColors closeButton position="top-right" />
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }

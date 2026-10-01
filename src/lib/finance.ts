@@ -1,20 +1,11 @@
-export type TxType = "income" | "expense" | "lending" | "borrow";
-export type TxStatus = "pending" | "done";
-export type PaymentMethod = "cash" | "bkash" | "bank";
+import { format } from "date-fns";
 
-export type Transaction = {
-  id: string;
-  user_id: string;
-  title: string;
-  amount: number;
-  date: string; // YYYY-MM-DD
-  type: TxType;
-  status: TxStatus;
-  category: string | null;
-  payment_method: PaymentMethod;
-  created_at: string;
-  updated_at: string;
-};
+import type { Tables } from "@/integrations/supabase/types";
+
+export type Transaction = Tables<"transactions">; // date is YYYY-MM-DD
+export type TxType = Transaction["type"];
+export type TxStatus = Transaction["status"];
+export type PaymentMethod = Transaction["payment_method"];
 
 export const PAYMENT_METHODS: { value: PaymentMethod; label: string }[] = [
   { value: "cash", label: "Cash" },
@@ -31,37 +22,66 @@ export const TX_TYPES: { value: TxType; label: string; color: string }[] = [
 
 export const typeColorClass = (t: TxType) => {
   switch (t) {
-    case "income": return "text-income";
-    case "expense": return "text-expense";
-    case "lending": return "text-lending";
-    case "borrow": return "text-borrow";
+    case "income":
+      return "text-income";
+    case "expense":
+      return "text-expense";
+    case "lending":
+      return "text-lending";
+    case "borrow":
+      return "text-borrow";
   }
 };
 
 export const typeBadgeClass = (t: TxType) => {
   switch (t) {
-    case "income": return "bg-income/15 text-income border-income/40";
-    case "expense": return "bg-expense/15 text-expense border-expense/40";
-    case "lending": return "bg-lending/15 text-lending border-lending/40";
-    case "borrow": return "bg-borrow/15 text-borrow border-borrow/40";
+    case "income":
+      return "bg-income/15 text-income border-income/40";
+    case "expense":
+      return "bg-expense/15 text-expense border-expense/40";
+    case "lending":
+      return "bg-lending/15 text-lending border-lending/40";
+    case "borrow":
+      return "bg-borrow/15 text-borrow border-borrow/40";
   }
 };
 
 export const fmtMoney = (n: number) =>
-  new Intl.NumberFormat("en-BD", { style: "currency", currency: "BDT", maximumFractionDigits: 2 }).format(n);
+  new Intl.NumberFormat("en-BD", {
+    style: "currency",
+    currency: "BDT",
+    maximumFractionDigits: 2,
+  }).format(n);
 
+// Trim and collapse whitespace; blank becomes null (matches the DB check constraint)
+export const normalizeCategory = (c: string | null | undefined) => {
+  const v = (c ?? "").trim().replace(/\s+/g, " ");
+  return v || null;
+};
+
+// Minimum for new passwords; sign-in accepts any length so older accounts still work
+export const MIN_PASSWORD_LENGTH = 8;
+
+// Lending/borrow are tracked separately and never count toward income, expense or balance.
 export function summarize(txs: Transaction[]) {
   let income = 0;
   let expense = 0;
+  let lent = 0;
+  let borrowed = 0;
   for (const t of txs) {
-    if (t.type === "income") income += Number(t.amount);
-    else if (t.type === "expense") expense += Number(t.amount);
+    const amt = Number(t.amount);
+    if (t.type === "income") income += amt;
+    else if (t.type === "expense") expense += amt;
+    else if (t.type === "lending") lent += amt;
+    else if (t.type === "borrow") borrowed += amt;
   }
-  return { income, expense, balance: income - expense };
+  return { income, expense, lent, borrowed, balance: income - expense };
 }
 
-export function inRange(t: Transaction, start?: string, end?: string) {
-  if (start && t.date < start) return false;
-  if (end && t.date > end) return false;
-  return true;
-}
+// Signed effect of a transaction on the balance (0 for lending/borrow).
+export const balanceDelta = (t: Transaction) =>
+  t.type === "income" ? Number(t.amount) : t.type === "expense" ? -Number(t.amount) : 0;
+
+// Local calendar date as YYYY-MM-DD (toISOString() would give the UTC date).
+export const toISODate = (d: Date) => format(d, "yyyy-MM-dd");
+export const todayISO = () => toISODate(new Date());

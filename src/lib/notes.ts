@@ -1,8 +1,3 @@
-export type Note = {
-  id: string;
-  user_id: string;
-  title: string;
-  content: string;
-  created_at: string;
-  updated_at: string;
-};
+import type { Tables } from "@/integrations/supabase/types";
+
+export type Note = Tables<"notes">;

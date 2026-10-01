@@ -1,1 +1,4 @@
-project_id = "dbqplbxinqxtitvxvqxh"
+project_id = "kgnwhtojljvinymomhpw"
+[auth]
+# New passwords need at least 8 characters (set the same in the hosted project)
+minimum_password_length = 8

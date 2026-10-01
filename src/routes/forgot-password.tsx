@@ -41,7 +41,9 @@ function ForgotPasswordPage() {
     <div className="flex min-h-screen items-center justify-center p-6">
       <div className="w-full max-w-sm">
         <Logo />
-        <h1 className="mt-8 font-display text-3xl font-semibold tracking-tight">Reset your password</h1>
+        <h1 className="mt-8 font-display text-3xl font-semibold tracking-tight">
+          Reset your password
+        </h1>
         <p className="mt-2 text-sm text-muted-foreground">
           We'll email you a link to set a new password.
         </p>
@@ -64,7 +66,9 @@ function ForgotPasswordPage() {
           </form>
         )}
         <p className="mt-6 text-center text-sm text-muted-foreground">
-          <Link to="/auth" className="font-medium text-primary hover:underline">Back to sign in</Link>
+          <Link to="/auth" className="font-medium text-primary hover:underline">
+            Back to sign in
+          </Link>
         </p>
       </div>
     </div>
