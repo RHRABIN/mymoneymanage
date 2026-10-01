@@ -1,5 +1,5 @@
 {
-  "name": "tanstack_start_ts",
+  "name": "mymoneymanage",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -10,7 +10,10 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "db:migrate": "node --env-file-if-exists=.env scripts/migrate.mjs"
+    "db:migrate": "node --env-file-if-exists=.env scripts/migrate.mjs",
+    "test": "vitest run",
+    "test:db": "node scripts/test-db.mjs",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.25.5",
@@ -61,6 +64,7 @@
     "prettier": "^3.7.3",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.56.1",
-    "vite": "^7.3.1"
+    "vite": "^7.3.1",
+    "vitest": "^3.2.7"
   }
 }
