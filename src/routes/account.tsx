@@ -76,10 +76,11 @@ function AccountPage() {
     try {
       const { error: pErr } = await supabase
         .from("profiles")
-        .update({ full_name: vals.full_name, email: vals.email })
+        .update({ full_name: vals.full_name })
         .eq("user_id", user.id);
       if (pErr) throw pErr;
 
+      // profiles.email is synced from auth once the new address is confirmed
       if (vals.email !== user.email) {
         const { error: eErr } = await supabase.auth.updateUser({ email: vals.email });
         if (eErr) throw eErr;

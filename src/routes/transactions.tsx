@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   addMonths, addWeeks, eachDayOfInterval, endOfMonth, endOfWeek,
-  format, isSameMonth, parseISO, startOfMonth, startOfWeek, subMonths, subWeeks,
+  format, isSameMonth, isWithinInterval, parseISO, startOfMonth, startOfWeek, subMonths, subWeeks,
 } from "date-fns";
 import { ArrowDownRight, ArrowUpRight, ChevronLeft, ChevronRight, Landmark, Pencil, Plus, Search, Smartphone, Trash2, Wallet, X } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
@@ -18,14 +18,14 @@ import {
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
-import { fmtMoney, typeBadgeClass, type Transaction, type TxType } from "@/lib/finance";
+import { categoryList, fmtMoney, summarize, typeBadgeClass, typeColorClass, type Transaction, type TxType } from "@/lib/finance";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/transactions")({
   head: () => ({
     meta: [
       { title: "Transactions — Ledger" },
-      { name: "description", content: "Manage your income and expense transactions." },
+      { name: "description", content: "Manage your income, expense, lending and borrowing transactions." },
     ],
   }),
   component: () => (
@@ -68,7 +68,7 @@ function TransactionsPage() {
       .select("*")
       .order("updated_at", { ascending: false });
     if (!error && data) {
-      setTxs(data as Transaction[]);
+      setTxs(data);
       const { data: subs } = await supabase
         .from("sub_transactions")
         .select("transaction_id, amount");
@@ -82,12 +82,14 @@ function TransactionsPage() {
   };
   useEffect(() => { load(); }, []);
 
-  // Filter to current month for daily/calendar views
-  const monthTxs = useMemo(
+  // Filter to the current period: the cursor's week on the weekly tab, its month otherwise
+  const periodTxs = useMemo(
     () => {
       const q = search.trim().toLowerCase();
+      const week = { start: startOfWeek(cursor), end: endOfWeek(cursor) };
       return txs.filter((t) => {
-        if (!isSameMonth(parseISO(t.date), cursor)) return false;
+        const d = parseISO(t.date);
+        if (tab === "weekly" ? !isWithinInterval(d, week) : !isSameMonth(d, cursor)) return false;
         if (statusFilter !== "all" && (t.status ?? "pending") !== statusFilter) return false;
         if (typeFilter !== "all" && t.type !== typeFilter) return false;
         if (!q) return true;
@@ -98,28 +100,22 @@ function TransactionsPage() {
         );
       });
     },
-    [txs, cursor, search, statusFilter, typeFilter],
+    [txs, tab, cursor, search, statusFilter, typeFilter],
   );
 
-  const totals = useMemo(() => {
-    let income = 0, expense = 0;
-    for (const t of monthTxs) {
-      if (t.type === "income") income += Number(t.amount);
-      else expense += Number(t.amount);
-    }
-    return { income, expense, total: income - expense };
-  }, [monthTxs]);
+  const totals = useMemo(() => summarize(periodTxs), [periodTxs]);
+  const categories = useMemo(() => categoryList(txs), [txs]);
 
   // Group by day, descending
   const byDay = useMemo(() => {
     const map = new Map<string, Transaction[]>();
-    for (const t of monthTxs) {
+    for (const t of periodTxs) {
       const arr = map.get(t.date) ?? [];
       arr.push(t);
       map.set(t.date, arr);
     }
     return [...map.entries()].sort(([a], [b]) => (a < b ? 1 : -1));
-  }, [monthTxs]);
+  }, [periodTxs]);
 
   const handleDelete = async () => {
     if (!toDelete) return;
@@ -139,7 +135,7 @@ function TransactionsPage() {
     <div className="space-y-4">
       {/* Title bar */}
       <header className="flex items-center justify-between gap-3">
-        <h1 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">Transaction</h1>
+        <h1 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">Transactions</h1>
       </header>
 
       {/* Period nav */}
@@ -269,20 +265,26 @@ function TransactionsPage() {
         <div className="min-w-0">
           <p className="text-[10px] text-muted-foreground sm:text-xs">Total</p>
           <p className="mt-1 truncate font-display text-xs font-semibold sm:text-base">
-            {fmtMoney(totals.total)}
+            {fmtMoney(totals.balance)}
           </p>
         </div>
       </div>
+      {(totals.lent > 0 || totals.borrowed > 0) && (
+        <p className="-mt-2 text-center text-[11px] text-muted-foreground sm:text-xs">
+          Not in totals: lent <span className="text-lending">{fmtMoney(totals.lent)}</span> · borrowed{" "}
+          <span className="text-borrow">{fmtMoney(totals.borrowed)}</span>
+        </p>
+      )}
 
       {/* Body */}
       {loading ? (
         <p className="text-center text-sm text-muted-foreground">Loading…</p>
       ) : tab === "calendar" ? (
-        <CalendarView cursor={cursor} txs={monthTxs} />
+        <CalendarView cursor={cursor} txs={periodTxs} />
       ) : tab === "monthly" ? (
         <MonthlyView txs={txs} />
       ) : tab === "summary" ? (
-        <SummaryView txs={monthTxs} />
+        <SummaryView txs={periodTxs} />
       ) : byDay.length === 0 ? (
         <EmptyState />
       ) : (
@@ -320,7 +322,8 @@ function TransactionsPage() {
                     {items.map((t) => {
                       const used = subTotals[t.id] ?? 0;
                       const remaining = Number(t.amount) - used;
-                      const isPosType = t.type === "income" || t.type === "lending";
+                      // Arrow shows money direction: in for income/borrow, out for expense/lending
+                      const isInflow = t.type === "income" || t.type === "borrow";
                       const methodIcon = t.payment_method === "bkash"
                         ? <Smartphone className="h-3 w-3" />
                         : t.payment_method === "bank"
@@ -362,9 +365,9 @@ function TransactionsPage() {
                           </div>
                           <span className={cn(
                             "shrink-0 font-display text-sm font-semibold sm:inline-flex sm:items-center sm:gap-0.5 sm:text-base",
-                            isPosType ? "text-income" : "text-expense",
+                            typeColorClass(t.type),
                           )}>
-                            {isPosType ? <ArrowUpRight className="hidden h-4 w-4 sm:inline" /> : <ArrowDownRight className="hidden h-4 w-4 sm:inline" />}
+                            {isInflow ? <ArrowUpRight className="hidden h-4 w-4 sm:inline" /> : <ArrowDownRight className="hidden h-4 w-4 sm:inline" />}
                             {fmtMoney(Number(t.amount))}
                           </span>
                           <div className="flex shrink-0 flex-col gap-0.5 sm:flex-row" onClick={(e) => e.stopPropagation()}>
@@ -393,6 +396,7 @@ function TransactionsPage() {
           userId={user.id}
           initial={editing}
           onSaved={load}
+          categories={categories}
         />
       )}
 
@@ -411,7 +415,7 @@ function TransactionsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this transaction?</AlertDialogTitle>
             <AlertDialogDescription>
-              {toDelete && <>“{toDelete.title}” will be permanently removed.</>}
+              {toDelete && <>“{toDelete.title}” and all its sub-transactions will be permanently removed.</>}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -453,7 +457,7 @@ function CalendarView({ cursor, txs }: { cursor: Date; txs: Transaction[] }) {
     const k = t.date;
     const cur = map.get(k) ?? { inc: 0, exp: 0 };
     if (t.type === "income") cur.inc += Number(t.amount);
-    else cur.exp += Number(t.amount);
+    else if (t.type === "expense") cur.exp += Number(t.amount);
     map.set(k, cur);
   }
   return (
@@ -497,7 +501,7 @@ function MonthlyView({ txs }: { txs: Transaction[] }) {
     const k = format(parseISO(t.date), "yyyy-MM");
     const cur = map.get(k) ?? { inc: 0, exp: 0 };
     if (t.type === "income") cur.inc += Number(t.amount);
-    else cur.exp += Number(t.amount);
+    else if (t.type === "expense") cur.exp += Number(t.amount);
     map.set(k, cur);
   }
   const rows = [...map.entries()].sort(([a], [b]) => (a < b ? 1 : -1));

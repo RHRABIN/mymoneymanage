@@ -1,13 +1,17 @@
 import { useEffect, useState } from "react";
 import { format, parseISO } from "date-fns";
-import { Plus, Trash2, Wallet, Smartphone, Landmark } from "lucide-react";
+import { Pencil, Plus, Trash2, Wallet, Smartphone, Landmark, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { fmtMoney, typeBadgeClass, type Transaction } from "@/lib/finance";
+import { fmtMoney, todayISO, typeBadgeClass, type Transaction } from "@/lib/finance";
 import { sumSubs, type SubTransaction } from "@/lib/sub-transactions";
 import { cn } from "@/lib/utils";
 
@@ -34,8 +38,15 @@ export function TransactionDetailsSheet({
   const [loading, setLoading] = useState(false);
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState("");
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(todayISO());
   const [saving, setSaving] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [toDelete, setToDelete] = useState<SubTransaction | null>(null);
+
+  const resetForm = () => {
+    setEditingId(null);
+    setTitle(""); setAmount(""); setDate(todayISO());
+  };
 
   const load = async (txId: string) => {
     setLoading(true);
@@ -44,14 +55,14 @@ export function TransactionDetailsSheet({
       .select("*")
       .eq("transaction_id", txId)
       .order("date", { ascending: false });
-    if (!error && data) setSubs(data as SubTransaction[]);
+    if (!error && data) setSubs(data);
     setLoading(false);
   };
 
   useEffect(() => {
     if (open && tx) {
       load(tx.id);
-      setTitle(""); setAmount(""); setDate(new Date().toISOString().slice(0, 10));
+      resetForm();
     }
   }, [open, tx]);
 
@@ -60,7 +71,14 @@ export function TransactionDetailsSheet({
   const used = sumSubs(subs);
   const remaining = Number(tx.amount) - used;
 
-  const handleAdd = async (e: React.FormEvent) => {
+  const startEdit = (s: SubTransaction) => {
+    setEditingId(s.id);
+    setTitle(s.title);
+    setAmount(String(s.amount));
+    setDate(s.date);
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     const amt = Number(amount);
     if (!title.trim() || !amt || amt <= 0) {
@@ -68,24 +86,32 @@ export function TransactionDetailsSheet({
       return;
     }
     setSaving(true);
-    const { error } = await supabase.from("sub_transactions").insert({
-      user_id: userId,
-      transaction_id: tx.id,
-      title: title.trim(),
-      amount: amt,
-      date,
-    });
+    const fields = { title: title.trim(), amount: amt, date };
+    const { error } = editingId
+      ? await supabase.from("sub_transactions").update(fields).eq("id", editingId)
+      : await supabase.from("sub_transactions").insert({ ...fields, user_id: userId, transaction_id: tx.id });
     setSaving(false);
     if (error) { toast.error(error.message); return; }
-    setTitle(""); setAmount("");
-    toast.success("Sub-transaction added");
+
+    // Overspending is allowed, but call it out
+    const previous = editingId ? Number(subs.find((s) => s.id === editingId)?.amount ?? 0) : 0;
+    const newUsed = used - previous + amt;
+    if (newUsed > Number(tx.amount)) {
+      toast.warning(`Over budget by ${fmtMoney(newUsed - Number(tx.amount))}`);
+    } else {
+      toast.success(editingId ? "Sub-transaction updated" : "Sub-transaction added");
+    }
+    resetForm();
     load(tx.id);
     onChanged();
   };
 
-  const handleDelete = async (id: string) => {
-    const { error } = await supabase.from("sub_transactions").delete().eq("id", id);
+  const handleDelete = async () => {
+    if (!toDelete) return;
+    const { error } = await supabase.from("sub_transactions").delete().eq("id", toDelete.id);
+    setToDelete(null);
     if (error) { toast.error(error.message); return; }
+    if (editingId === toDelete.id) resetForm();
     toast.success("Removed");
     load(tx.id);
     onChanged();
@@ -124,9 +150,23 @@ export function TransactionDetailsSheet({
             </p>
           </div>
         </div>
+        {remaining < 0 && (
+          <p className="mt-2 rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+            Over budget by {fmtMoney(-remaining)}
+          </p>
+        )}
 
-        <form onSubmit={handleAdd} className="mt-4 space-y-2 rounded-2xl border border-border bg-card p-3">
-          <p className="font-display text-sm font-semibold">Add sub-transaction</p>
+        <form onSubmit={handleSave} className="mt-4 space-y-2 rounded-2xl border border-border bg-card p-3">
+          <div className="flex items-center justify-between">
+            <p className="font-display text-sm font-semibold">
+              {editingId ? "Edit sub-transaction" : "Add sub-transaction"}
+            </p>
+            {editingId && (
+              <Button type="button" size="icon" variant="ghost" className="h-7 w-7" onClick={resetForm} aria-label="Cancel edit">
+                <X className="h-3.5 w-3.5" />
+              </Button>
+            )}
+          </div>
           <div className="space-y-2">
             <Label className="text-xs">Title</Label>
             <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Food purchase today" />
@@ -142,7 +182,11 @@ export function TransactionDetailsSheet({
             </div>
           </div>
           <Button type="submit" disabled={saving} className="w-full bg-gradient-emerald text-primary-foreground hover:opacity-95">
-            <Plus className="mr-1 h-4 w-4" /> {saving ? "Adding..." : "Add"}
+            {editingId ? (
+              saving ? "Saving..." : "Save changes"
+            ) : (
+              <><Plus className="mr-1 h-4 w-4" /> {saving ? "Adding..." : "Add"}</>
+            )}
           </Button>
         </form>
 
@@ -165,7 +209,10 @@ export function TransactionDetailsSheet({
                   <span className="font-display text-sm font-semibold text-expense">
                     -{fmtMoney(Number(s.amount))}
                   </span>
-                  <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleDelete(s.id)} aria-label="Delete">
+                  <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => startEdit(s)} aria-label="Edit">
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setToDelete(s)} aria-label="Delete">
                     <Trash2 className="h-3.5 w-3.5 text-destructive" />
                   </Button>
                 </li>
@@ -173,6 +220,23 @@ export function TransactionDetailsSheet({
             </ul>
           )}
         </div>
+
+        <AlertDialog open={!!toDelete} onOpenChange={(v) => !v && setToDelete(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete this sub-transaction?</AlertDialogTitle>
+              <AlertDialogDescription>
+                {toDelete && <>“{toDelete.title}” ({fmtMoney(Number(toDelete.amount))}) will be permanently removed.</>}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </SheetContent>
     </Sheet>
   );

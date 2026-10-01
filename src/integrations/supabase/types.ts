@@ -119,10 +119,10 @@ export type Database = {
           created_at: string
           date: string
           id: string
-          payment_method: string
-          status: string
+          payment_method: "cash" | "bkash" | "bank"
+          status: "pending" | "done"
           title: string
-          type: string
+          type: "income" | "expense" | "lending" | "borrow"
           updated_at: string
           user_id: string
         }
@@ -132,10 +132,10 @@ export type Database = {
           created_at?: string
           date?: string
           id?: string
-          payment_method?: string
-          status?: string
+          payment_method?: "cash" | "bkash" | "bank"
+          status?: "pending" | "done"
           title: string
-          type: string
+          type: "income" | "expense" | "lending" | "borrow"
           updated_at?: string
           user_id: string
         }
@@ -145,10 +145,10 @@ export type Database = {
           created_at?: string
           date?: string
           id?: string
-          payment_method?: string
-          status?: string
+          payment_method?: "cash" | "bkash" | "bank"
+          status?: "pending" | "done"
           title?: string
-          type?: string
+          type?: "income" | "expense" | "lending" | "borrow"
           updated_at?: string
           user_id?: string
         }
@@ -183,6 +183,12 @@ export type Database = {
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_active_user: {
+        Args: {
           _user_id: string
         }
         Returns: boolean

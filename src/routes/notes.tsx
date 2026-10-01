@@ -54,7 +54,7 @@ function NotesPage() {
       .from("notes")
       .select("*")
       .order("created_at", { ascending: false });
-    if (!error && data) setNotes(data as unknown as Note[]);
+    if (!error && data) setNotes(data);
     setLoading(false);
   };
 

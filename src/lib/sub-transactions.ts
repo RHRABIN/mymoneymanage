@@ -1,13 +1,6 @@
-export type SubTransaction = {
-  id: string;
-  user_id: string;
-  transaction_id: string;
-  title: string;
-  amount: number;
-  date: string;
-  created_at: string;
-  updated_at: string;
-};
+import type { Tables } from "@/integrations/supabase/types";
+
+export type SubTransaction = Tables<"sub_transactions">;
 
 export function sumSubs(subs: SubTransaction[]): number {
   return subs.reduce((s, x) => s + Number(x.amount), 0);

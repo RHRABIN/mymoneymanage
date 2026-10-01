@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
-import { fmtMoney, summarize, type Transaction } from "@/lib/finance";
+import { balanceDelta, categoryList, fmtMoney, summarize, todayISO, toISODate, type Transaction } from "@/lib/finance";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -42,8 +42,8 @@ function Dashboard() {
   const [txs, setTxs] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
-  const today = new Date().toISOString().slice(0, 10);
-  const sixMonthsAgo = subMonths(new Date(), 6).toISOString().slice(0, 10);
+  const today = todayISO();
+  const sixMonthsAgo = toISODate(subMonths(new Date(), 6));
   const [start, setStart] = useState(sixMonthsAgo);
   const [end, setEnd] = useState(today);
 
@@ -54,7 +54,7 @@ function Dashboard() {
       .from("transactions")
       .select("*")
       .order("date", { ascending: true });
-    if (!error && data) setTxs(data as Transaction[]);
+    if (!error && data) setTxs(data);
     setLoading(false);
   };
 
@@ -67,14 +67,14 @@ function Dashboard() {
   const all = summarize(txs);
   const period = summarize(filtered);
 
-  // Balance over time (cumulative)
+  // Balance over time (cumulative), starting from the balance carried into the period
   const balanceData = useMemo(() => {
-    let bal = 0;
+    let bal = txs.filter((t) => t.date < start).reduce((s, t) => s + balanceDelta(t), 0);
     return filtered.map((t) => {
-      bal += t.type === "income" ? Number(t.amount) : -Number(t.amount);
+      bal += balanceDelta(t);
       return { date: t.date, balance: Number(bal.toFixed(2)) };
     });
-  }, [filtered]);
+  }, [txs, filtered, start]);
 
   // Monthly income vs expense
   const monthlyData = useMemo(() => {
@@ -84,7 +84,7 @@ function Dashboard() {
       const label = format(parseISO(t.date), "MMM yy");
       const cur = map.get(key) ?? { month: label, income: 0, expense: 0 };
       if (t.type === "income") cur.income += Number(t.amount);
-      else cur.expense += Number(t.amount);
+      else if (t.type === "expense") cur.expense += Number(t.amount);
       map.set(key, cur);
     }
     return [...map.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([, v]) => v);
@@ -248,6 +248,7 @@ function Dashboard() {
           onOpenChange={setOpen}
           userId={user.id}
           onSaved={load}
+          categories={categoryList(txs)}
         />
       )}
     </div>

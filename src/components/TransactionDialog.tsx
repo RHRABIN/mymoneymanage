@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { PAYMENT_METHODS, TX_TYPES, type PaymentMethod, type Transaction, type TxType } from "@/lib/finance";
+import { normalizeCategory, PAYMENT_METHODS, TX_TYPES, todayISO, type PaymentMethod, type Transaction, type TxType } from "@/lib/finance";
 
 const schema = z.object({
   title: z.string().trim().min(1, "Required").max(80),
@@ -41,12 +41,14 @@ export function TransactionDialog({
   userId,
   initial,
   onSaved,
+  categories = [],
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   userId: string;
   initial?: Transaction | null;
   onSaved: () => void;
+  categories?: string[];
 }) {
   const [submitting, setSubmitting] = useState(false);
   const isEdit = !!initial;
@@ -56,16 +58,22 @@ export function TransactionDialog({
     values: {
       title: initial?.title ?? "",
       amount: initial ? Number(initial.amount) : ("" as unknown as number),
-      date: initial?.date ?? new Date().toISOString().slice(0, 10),
-      type: (initial?.type ?? "expense") as TxType,
+      date: initial?.date ?? todayISO(),
+      type: initial?.type ?? "expense",
       status: initial?.status ?? "pending",
-      payment_method: (initial?.payment_method ?? "cash") as PaymentMethod,
+      payment_method: initial?.payment_method ?? "cash",
       category: initial?.category ?? "",
     },
   });
 
   const onSubmit = async (vals: FormVals) => {
     setSubmitting(true);
+    // Reuse the existing spelling when a category matches case-insensitively
+    let category = normalizeCategory(vals.category);
+    if (category) {
+      const lower = category.toLowerCase();
+      category = categories.find((c) => c.toLowerCase() === lower) ?? category;
+    }
     const payload = {
       title: vals.title,
       amount: vals.amount,
@@ -73,7 +81,7 @@ export function TransactionDialog({
       type: vals.type,
       status: vals.status,
       payment_method: vals.payment_method,
-      category: vals.category?.trim() ? vals.category.trim() : null,
+      category,
       user_id: userId,
     };
     const res = isEdit
@@ -158,7 +166,10 @@ export function TransactionDialog({
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label htmlFor="category">Category</Label>
-              <Input id="category" placeholder="Optional" {...form.register("category")} />
+              <Input id="category" placeholder="Optional" list="category-options" autoComplete="off" {...form.register("category")} />
+              <datalist id="category-options">
+                {categories.map((c) => <option key={c} value={c} />)}
+              </datalist>
             </div>
             <div className="space-y-2">
               <Label>Status</Label>

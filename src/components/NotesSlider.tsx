@@ -21,7 +21,7 @@ export function NotesSlider() {
         .select("*")
         .order("created_at", { ascending: false })
         .limit(10);
-      if (data) setNotes(data as Note[]);
+      if (data) setNotes(data);
       setLoading(false);
     })();
   }, []);
