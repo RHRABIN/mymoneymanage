@@ -1,6 +1,6 @@
 /**
  * PWA service worker registration with iframe/preview guards.
- * Only registers in production builds running on real hosts (not Lovable preview).
+ * Only registers in production builds on real hosts (not localhost or inside an iframe).
  */
 export function registerPWA() {
   if (typeof window === "undefined") return;
@@ -14,12 +14,7 @@ export function registerPWA() {
   })();
 
   const hostname = window.location.hostname;
-  const isPreviewHost =
-    hostname.includes("id-preview--") ||
-    hostname.includes("lovableproject.com") ||
-    hostname.includes("lovable.app") === false && hostname.includes("lovable") ||
-    hostname === "localhost" ||
-    hostname === "127.0.0.1";
+  const isPreviewHost = hostname === "localhost" || hostname === "127.0.0.1";
 
   // In preview/iframe, aggressively unregister any existing service workers
   if (isPreviewHost || isInIframe) {

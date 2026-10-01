@@ -40,7 +40,6 @@ export const Route = createRootRoute({
       { property: "og:description", content: "Track income, expenses, and savings with a beautiful real-time finance dashboard." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
       { name: "theme-color", content: "#064e3b" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },

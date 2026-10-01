@@ -9,7 +9,7 @@ import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { lovable } from "@/integrations/lovable";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -38,18 +38,17 @@ function AuthPage() {
   const handleGoogle = async () => {
     setAuthError(null);
     setGoogleLoading(true);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin + "/dashboard",
+    // Redirects to Google; requires the Google provider to be enabled in Supabase Auth
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: window.location.origin + "/dashboard" },
     });
-    if (result.error) {
+    if (error) {
       setGoogleLoading(false);
-      const msg = result.error.message || "Google sign-in failed.";
+      const msg = error.message || "Google sign-in failed.";
       setAuthError(msg);
       toast.error(msg);
-      return;
     }
-    if (result.redirected) return;
-    navigate({ to: "/dashboard" });
   };
 
   useEffect(() => {
