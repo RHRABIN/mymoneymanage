@@ -39,6 +39,11 @@ History is stored in `supabase_migrations.schema_migrations`, the same table the
 uses. For a database that already has the tables but no history, use
 `--baseline <last applied version>`.
 
+Super admins can also apply pending migrations from **Super Admin → Database migrations** in the
+app. It only runs the SQL files bundled with the deployed build (never SQL typed into the page),
+uses the same history table, and takes a lock so two runs can't overlap. It needs `DATABASE_URL`
+set on the server.
+
 Local database (Docker):
 
 ```sh
@@ -93,8 +98,9 @@ anywhere Node runs: `npm start` (reads `.env`).
 1. Import the GitHub repo in Vercel (Add New → Project). The framework is detected from the build
    output; no extra settings are needed.
 2. Add environment variables: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`,
-   `VITE_SUPABASE_PROJECT_ID`, `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`. Do **not** add
-   `DATABASE_URL`; only the migration script needs it.
+   `VITE_SUPABASE_PROJECT_ID`, `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`. Add `DATABASE_URL`
+   only if you want the in-app migrations panel; it gives the server full database access, so
+   leave it out if you'd rather run `npm run db:migrate` yourself.
 3. In Supabase → Authentication → URL Configuration, set the Site URL to the Vercel domain and add
    `https://<your-domain>/**` (and `https://*-<your-vercel-team>.vercel.app/**` for preview
    deployments) to the redirect URLs.
