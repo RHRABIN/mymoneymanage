@@ -156,3 +156,30 @@ SELECT pg_temp.check('balance_totals is zero for a user with no data',
   pg_temp.count_as('cccccccc-0000-0000-0000-00000000000c', $q$SELECT tx_count FROM balance_totals('2026-01-01')$q$) = 0);
 SELECT pg_temp.check('user_categories lists only the caller''s categories',
   pg_temp.count_as('bbbbbbbb-0000-0000-0000-00000000000b', $q$SELECT count(*) FROM user_categories()$q$) = 1);
+
+-- Phase 5: saving targets (one per user per month, owner-only)
+SELECT pg_temp.check('A can set a saving target for a month',
+  pg_temp.count_as('aaaaaaaa-0000-0000-0000-00000000000a', $q$WITH i AS (INSERT INTO saving_targets (user_id,month,amount)
+     VALUES ('aaaaaaaa-0000-0000-0000-00000000000a','2026-10-01',15000) RETURNING 1) SELECT count(*) FROM i$q$) = 1);
+SELECT pg_temp.check('setting the same month again updates it (upsert)',
+  pg_temp.count_as('aaaaaaaa-0000-0000-0000-00000000000a', $q$WITH i AS (INSERT INTO saving_targets (user_id,month,amount)
+     VALUES ('aaaaaaaa-0000-0000-0000-00000000000a','2026-10-01',20000)
+     ON CONFLICT (user_id,month) DO UPDATE SET amount = excluded.amount RETURNING 1)
+     SELECT count(*) FROM i$q$) = 1);
+-- separate statement: the one above can't see its own function's write
+SELECT pg_temp.check('upsert replaced the amount',
+  (SELECT amount FROM saving_targets WHERE user_id='aaaaaaaa-0000-0000-0000-00000000000a' AND month='2026-10-01') = 20000);
+SELECT pg_temp.expect_error('negative saving target rejected', 'aaaaaaaa-0000-0000-0000-00000000000a',
+  $q$INSERT INTO saving_targets (user_id,month,amount) VALUES ('aaaaaaaa-0000-0000-0000-00000000000a','2026-11-01',-1)$q$);
+SELECT pg_temp.expect_error('saving target month must be the 1st', 'aaaaaaaa-0000-0000-0000-00000000000a',
+  $q$INSERT INTO saving_targets (user_id,month,amount) VALUES ('aaaaaaaa-0000-0000-0000-00000000000a','2026-11-15',1)$q$);
+SELECT pg_temp.expect_error('B cannot set a saving target for A', 'bbbbbbbb-0000-0000-0000-00000000000b',
+  $q$INSERT INTO saving_targets (user_id,month,amount) VALUES ('aaaaaaaa-0000-0000-0000-00000000000a','2026-12-01',1)$q$);
+SELECT pg_temp.check('B cannot see A''s saving targets',
+  pg_temp.count_as('bbbbbbbb-0000-0000-0000-00000000000b', $q$SELECT count(*) FROM saving_targets$q$) = 0);
+SELECT pg_temp.check('B cannot change A''s saving targets',
+  pg_temp.count_as('bbbbbbbb-0000-0000-0000-00000000000b', $q$WITH u AS (UPDATE saving_targets SET amount = 1 RETURNING 1) SELECT count(*) FROM u$q$) = 0);
+SELECT pg_temp.check('B cannot delete A''s saving targets',
+  pg_temp.count_as('bbbbbbbb-0000-0000-0000-00000000000b', $q$WITH d AS (DELETE FROM saving_targets RETURNING 1) SELECT count(*) FROM d$q$) = 0);
+SELECT pg_temp.check('deleting a user cascades to saving targets',
+  (SELECT confdeltype = 'c' FROM pg_constraint WHERE conname = 'saving_targets_user_id_fkey'));

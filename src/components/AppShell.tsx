@@ -2,6 +2,7 @@ import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import {
   LayoutDashboard,
   ListOrdered,
+  PieChart,
   LogOut,
   Menu,
   X,
@@ -23,6 +24,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const NAV = [
     { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { to: "/transactions", label: "Transactions", icon: ListOrdered },
+    { to: "/reports", label: "Reports", icon: PieChart },
     { to: "/notes", label: "My Notes", icon: StickyNote },
     { to: "/account", label: "My Account", icon: User },
     ...(isSuperAdmin ? [{ to: "/admin", label: "Super Admin", icon: Shield }] : []),

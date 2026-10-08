@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { pageWindow } from "@/lib/pagination";
+import { MigrationsPanel } from "@/components/admin/MigrationsPanel";
 import {
   Table,
   TableBody,
@@ -302,6 +303,8 @@ function AdminPage() {
           </PaginationContent>
         </Pagination>
       )}
+
+      <MigrationsPanel />
     </div>
   );
 }
