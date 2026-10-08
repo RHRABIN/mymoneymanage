@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthedTransactionsRouteImport } from './routes/_authed/transactions'
+import { Route as AuthedReportsRouteImport } from './routes/_authed/reports'
 import { Route as AuthedNotesRouteImport } from './routes/_authed/notes'
 import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
 import { Route as AuthedAdminRouteImport } from './routes/_authed/admin'
@@ -49,6 +50,11 @@ const AuthedTransactionsRoute = AuthedTransactionsRouteImport.update({
   path: '/transactions',
   getParentRoute: () => AuthedRoute,
 } as any)
+const AuthedReportsRoute = AuthedReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => AuthedRoute,
+} as any)
 const AuthedNotesRoute = AuthedNotesRouteImport.update({
   id: '/notes',
   path: '/notes',
@@ -79,6 +85,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthedAdminRoute
   '/dashboard': typeof AuthedDashboardRoute
   '/notes': typeof AuthedNotesRoute
+  '/reports': typeof AuthedReportsRoute
   '/transactions': typeof AuthedTransactionsRoute
 }
 export interface FileRoutesByTo {
@@ -90,6 +97,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthedAdminRoute
   '/dashboard': typeof AuthedDashboardRoute
   '/notes': typeof AuthedNotesRoute
+  '/reports': typeof AuthedReportsRoute
   '/transactions': typeof AuthedTransactionsRoute
 }
 export interface FileRoutesById {
@@ -103,6 +111,7 @@ export interface FileRoutesById {
   '/_authed/admin': typeof AuthedAdminRoute
   '/_authed/dashboard': typeof AuthedDashboardRoute
   '/_authed/notes': typeof AuthedNotesRoute
+  '/_authed/reports': typeof AuthedReportsRoute
   '/_authed/transactions': typeof AuthedTransactionsRoute
 }
 export interface FileRouteTypes {
@@ -116,6 +125,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dashboard'
     | '/notes'
+    | '/reports'
     | '/transactions'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -127,6 +137,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dashboard'
     | '/notes'
+    | '/reports'
     | '/transactions'
   id:
     | '__root__'
@@ -139,6 +150,7 @@ export interface FileRouteTypes {
     | '/_authed/admin'
     | '/_authed/dashboard'
     | '/_authed/notes'
+    | '/_authed/reports'
     | '/_authed/transactions'
   fileRoutesById: FileRoutesById
 }
@@ -194,6 +206,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedTransactionsRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/reports': {
+      id: '/_authed/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof AuthedReportsRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/notes': {
       id: '/_authed/notes'
       path: '/notes'
@@ -230,6 +249,7 @@ interface AuthedRouteChildren {
   AuthedAdminRoute: typeof AuthedAdminRoute
   AuthedDashboardRoute: typeof AuthedDashboardRoute
   AuthedNotesRoute: typeof AuthedNotesRoute
+  AuthedReportsRoute: typeof AuthedReportsRoute
   AuthedTransactionsRoute: typeof AuthedTransactionsRoute
 }
 
@@ -238,6 +258,7 @@ const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedAdminRoute: AuthedAdminRoute,
   AuthedDashboardRoute: AuthedDashboardRoute,
   AuthedNotesRoute: AuthedNotesRoute,
+  AuthedReportsRoute: AuthedReportsRoute,
   AuthedTransactionsRoute: AuthedTransactionsRoute,
 }
 

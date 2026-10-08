@@ -13,6 +13,8 @@ export const queryKeys = {
   monthlyTotals: ["transactions", "monthly"] as const,
   balanceTotals: (start: string) => ["transactions", "balance", start] as const,
   categories: ["transactions", "categories"] as const,
+  pendingLoans: ["transactions", "pending-loans"] as const,
+  savingTargets: ["saving_targets"] as const,
   subTransactions: (txId: string) => ["sub_transactions", txId] as const,
   notes: (limit?: number) => ["notes", limit ?? "all"] as const,
 };
@@ -71,6 +73,28 @@ export function useCategories() {
   });
 }
 
+// Lending/borrow not yet settled, from any month
+export function usePendingLoans() {
+  return useQuery({
+    queryKey: queryKeys.pendingLoans,
+    queryFn: () =>
+      unwrap(
+        supabase
+          .from("transactions")
+          .select("*")
+          .in("type", ["lending", "borrow"])
+          .eq("status", "pending"),
+      ),
+  });
+}
+
+export function useSavingTargets() {
+  return useQuery({
+    queryKey: queryKeys.savingTargets,
+    queryFn: () => unwrap(supabase.from("saving_targets").select("month, amount").order("month")),
+  });
+}
+
 export function useSubTransactions(txId: string | undefined) {
   return useQuery({
     queryKey: queryKeys.subTransactions(txId ?? ""),
@@ -107,5 +131,6 @@ export function useInvalidate() {
         qc.invalidateQueries({ queryKey: queryKeys.transactions }),
       ]),
     notes: () => qc.invalidateQueries({ queryKey: ["notes"] }),
+    savingTargets: () => qc.invalidateQueries({ queryKey: queryKeys.savingTargets }),
   };
 }
